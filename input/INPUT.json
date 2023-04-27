@@ -1,0 +1,46 @@
+{
+  "qualstate": {
+    "ignore": {
+      "spa_evaluation": []
+    },
+    "valuesToUse": [
+      {
+        "id": "eventoId-btnId",
+        "event": "click",
+        "wait": "1second",
+        "values": [
+          {
+            "idcheckbox": "true",
+            "radio": "d"
+          },
+          {
+            "idcheckbox": "false",
+            "age": "20",
+            "radio": "d"
+          }
+        ]
+      },
+      {
+        "id": "eventoId-btnId",
+        "values": [
+          {
+            "input": "hello"
+          }
+        ]
+      }
+    ],
+    "direction": {
+      "continue": "stop",
+      "action": [
+        {
+          "id": "eventoId-btnId",
+          "event": "click"
+        },
+        {
+          "id": "eventoId-btnId",
+          "event": "click"
+        }
+      ]
+    }
+  }
+}
