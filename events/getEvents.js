@@ -1,7 +1,8 @@
 const puppeteer = require('puppeteer');
 module.exports = { describe };
+const utilsM = require("../utils/utils.js");
 
-async function describe(session, idsToIgnore, selector = '*') {
+async function describe(session, idsToIgnore, events, selector = '*') {
     const objectGroup = 'dc24d2b3-f5ec-4273-a5c8-1459b5c78ca0';
 
     const { result: { objectId } } = await session.send('Runtime.evaluate', {
@@ -22,14 +23,16 @@ async function describe(session, idsToIgnore, selector = '*') {
         Object.assign(descriptor, await session.send('DOM.describeNode', { objectId }));
 
         if (descriptor.listeners.length != 0 || checkOtherTags(descriptor)) {
-            if (!idsToIgnore.has(descriptor.value.description.split("#").pop())) { // pode ser melhor utilizar o id do array de atributos
-                elements.push(descriptor);
-            }
+            // if (!idsToIgnore.has(descriptor.value.description.split("#").pop())) { // pode ser melhor utilizar o id do array de atributos
+            elements.push(descriptor);
+            // }
         }
     }
 
     await session.send('Runtime.releaseObjectGroup', { objectGroup });
-    return filterEvents(elements);
+    await filterEvents(elements, events);
+    
+    console.log("dss");
 }
 
 function checkOtherTags(element) {
@@ -37,20 +40,21 @@ function checkOtherTags(element) {
         case 'A':
             return true;
         case 'INPUT':
-            return element.node.attributes.forEach((nd, i) => {
-                if (nd == "type") {
+            for (let i = 0; i < element.node.attributes.length; i++) {
+                if (element.node.attributes[i] == "type") {
                     if (element.node.attributes[i + 1] == "submit") {
                         return true;
-                    };
+                    } else {
+                        return false;
+                    }
                 }
-            });
+            }
         default:
             return false;
     }
 }
 
-async function filterEvents(elements) {
-    let events = [];
+async function filterEvents(elements, events) {
     elements.forEach(el => {
         let selector;
         el.node.attributes.forEach((nd, i) => {
@@ -60,19 +64,21 @@ async function filterEvents(elements) {
         });
         if (!checkOtherTags(el)) {
             el.listeners.forEach(e => {
-                if (e.type == "click") {
-                    events.push({
-                        id: el.value.description,
-                        className: el.value.className,
-                        eventType: e.type,
-                        selector: selector
-                    });
-                }
+                // if (e.type == "click") {
+                events.push({
+                    user: "auto",
+                    id: el.value.description,
+                    className: el.value.className,
+                    eventType: e.type,
+                    selector: selector
+                });
+                // }
             });
         } else {
             switch (el.node.nodeName) {
                 case 'A':
                     events.push({
+                        user: "auto",
                         id: el.value.description,
                         className: el.value.className,
                         eventType: "click",
@@ -84,6 +90,7 @@ async function filterEvents(elements) {
                         if (nd == "type") {
                             if (el.node.attributes[i + 1] == "submit") {
                                 events.push({
+                                    user: "auto",
                                     id: el.value.description,
                                     className: el.value.className,
                                     eventType: "click",
@@ -95,33 +102,5 @@ async function filterEvents(elements) {
             }
         }
     });
-    return events;
 }
 
-// function filterEvent(element, elements) {
-//     let event = {};
-//     event.id = element.value.description;
-//     event.className = element.value.className;
-//     element.node.attributes.forEach((nd, i) => {
-//         if (nd == "_selector") {   // TODO - se não existir _selector
-//             event.selector = element.node.attributes[i + 1];
-//         }
-//     });
-//     if (!checkOtherTags(element, event)) { //passar elemets
-//         // for (let i = 0; i < element.listeners.length; i++) {
-//         //     event.eventType = element.listeners[i].type;
-//         //     console.log(element.listeners[i].type);
-//         //     console.log(event.eventType);
-//         //     elements.push(event);
-//         // }
-//         element.listeners.forEach(e => {
-//             elements.push(eventL);
-//             console.log(elements);
-//             // let eventL = event;
-//             // eventL.type = e.type;
-//             // console.log(eventL);
-//             // elements.push(eventL);
-//             // console.log(elements);
-//         });
-//     }
-// }
