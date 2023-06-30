@@ -1,77 +1,212 @@
+// events
+const eventsM = require("./events/events.js");
+const actionsM = require("./events/action.js");
+
+// html
+const xpathM = require("./html/xpath.js");
+
+// interections
+const directionsM = require("./interections/directions.js");
+const formsM = require("./interections/forms.js");
+const inputsM = require("./interections/inputs.js");
+
+// utils
+const utilsM = require("./utils/utils.js");
+
+// jsonSchema
+const schema = require("./schema/schema.js");
+
+// logger
+const logger = require("./logger/logger.js");
+
+// npm
 const puppeteer = require('puppeteer');
-const getEvents = require("./events/getEvents.js");
-const xpath = require("./html/xpath.js");
 const fs = require('fs');
 const asyncQ = require('async');
 
-const STATES_SPA = new Set();
-let IDS_IGNORE_SPA_EVALUATION;
+const STATES_SPA_EVALUATION = new Set();
+const STATES_SPA_COMPARE = new Set();
+
+let IDS_IGNORE_SPA_EVENTS;
+let IDS_IGNORE_SPA_COMPARE;
+let FORMS;
+let INPUTS;
+let DIRECTIONS;
+
+let url;
+let numberOfProcess = 1;
+let events = [];
+let directionEvents = [];
+
 let queue;
 
 const localhost = "http://localhost:5173/"
 // const localhost = "http://qualweb.di.fc.ul.pt/placm/assertions/continent";
 
 async function readFile() {
-  fs.readFile('input/INPUT.json', 'utf8', (err, data) => {
-    if (err) {
-      console.error(err);
+  try {
+    const data = fs.readFileSync('user_input/INPUT.json', 'utf8');
+    
+    let dataParse = JSON.parse(data);
+    if (!schema.validateSchema(dataParse)) {
       return;
     }
-    let dataParse = JSON.parse(data);
-    IDS_IGNORE_SPA_EVALUATION = new Set(dataParse.qualstate.ignore.spa_evaluation);
-  });
+
+    if (data && dataParse.qualstate != null) {
+      url = dataParse.qualstate.url;
+
+      if (dataParse.qualstate.process != null) {
+        numberOfProcess = dataParse.qualstate.process;
+      }
+
+      if (dataParse.qualstate.ignore != null) {
+        if (dataParse.qualstate.ignore.ids_compare != null) {
+          IDS_IGNORE_SPA_COMPARE = new Set(dataParse.qualstate.ignore.ids_compare);
+        }
+
+        if (dataParse.qualstate.ignore.ids_events != null) {
+          IDS_IGNORE_SPA_EVENTS = new Set(dataParse.qualstate.ignore.ids_events);
+        }
+      }
+      if (dataParse.qualstate.interaction != null) {
+        if (dataParse.qualstate.interaction.forms != null) {
+          FORMS = new Set(dataParse.qualstate.interaction.forms);
+        }
+
+        if (dataParse.qualstate.interaction.inputs != null) {
+          INPUTS = new Set(dataParse.qualstate.interaction.inputs);
+        }
+
+        if (dataParse.qualstate.interaction.directions != null) {
+          DIRECTIONS = new Set(dataParse.qualstate.interaction.directions);
+
+        }
+      }
+    }
+  } catch (err) {
+    console.error(err);
+  }
+  // fs.readFile('user_input/INPUT.json', 'utf8', (err, data) => {
+  //   if (err) {
+  //     console.error(err);
+  //     return;
+  //   }
+
+  //   let dataParse = JSON.parse(data);
+  //   if (!schema.validateSchema(dataParse)) {
+  //     return;
+  //   }
+
+  //   if (data && dataParse.qualstate != null) {
+  //     url = dataParse.qualstate.url;
+
+  //     if (dataParse.qualstate.process != null) {
+  //       numberOfProcess = dataParse.qualstate.process;
+  //     }
+
+  //     if (dataParse.qualstate.ignore != null) {
+  //       if (dataParse.qualstate.ignore.ids_compare != null) {
+  //         IDS_IGNORE_SPA_COMPARE = new Set(dataParse.qualstate.ignore.ids_compare);
+  //       }
+
+  //       if (dataParse.qualstate.ignore.ids_events != null) {
+  //         IDS_IGNORE_SPA_EVENTS = new Set(dataParse.qualstate.ignore.ids_events);
+  //       }
+  //     }
+  //     if (dataParse.qualstate.interaction != null) {
+  //       if (dataParse.qualstate.interaction.forms != null) {
+  //         FORMS = new Set(dataParse.qualstate.interaction.forms);
+  //       }
+
+  //       if (dataParse.qualstate.interaction.inputs != null) {
+  //         INPUTS = new Set(dataParse.qualstate.interaction.inputs);
+  //       }
+
+  //       if (dataParse.qualstate.interaction.directions != null) {
+  //         DIRECTIONS = new Set(dataParse.qualstate.interaction.directions);
+
+  //       }
+  //     }
+  //   }
+
+  // run();
+  // });
 }
 
-function init() {
-  readFile();
-}
+async function setup() {
+  if (fs.existsSync('user_input/INPUT.json')) {
+    await readFile();
+  } else {
+    logger.logDetails("error", {
+      msg: "Não existe ficheiro de input"
+    });
+    return;
+  }
 
-async function run() {
-  //____________________Init()_____________________________
-  init();
   const browser = await puppeteer.launch({ headless: false });
   var [page] = await browser.pages();
-  await page.goto(localhost, { waitUntil: 'networkidle2' });
-  let body = await getContent(page);
-  STATES_SPA.add({ _body: body, _selector: "original" });
-  //____________________Check for events_____________________________
+  await page.goto(url, { waitUntil: 'networkidle2' });
   const session = await page.target().createCDPSession();
-  await xpath.createSelectorOnPage(session);
-  const events = await getEvents.describe(session, IDS_IGNORE_SPA_EVALUATION);
-  console.log(events);
+  await utilsM.addState(session, page, STATES_SPA_COMPARE, IDS_IGNORE_SPA_COMPARE, STATES_SPA_EVALUATION, "original", xpathM);
 
-  //____________________Crawl_________________________________________
-  if (events.length != 0) {
-    queue = asyncQ.queue(crawl, '2');
-    events.forEach(async event => {
-      queue.push({
-        browser: browser,
-        actionbefore: [event]
-      });
-    });
-    queue.drain(() => {
-      end(browser);
-    });
-  } else {
-    end(browser);
-  }
+  // browser.on('targetdestroyed', async function () { // debug
+  //   if ((await browser.pages()).length == 0) {
+  //     endDebug();
+  //   }
+  // });
+
+  if (DIRECTIONS != null && DIRECTIONS.length != 0) {
+    await checkForDirections(browser);
+  };
+  await getEventAndInteraction(page, events);
+
+  await crawl(browser);
+  await queue.drain();
 };
 
-async function crawl(data) {
-  let page = await buildPage(data.browser);
+async function checkForDirections(browser) {
+  let directionQueue = asyncQ.queue(directionsM.executeDirection, '1');
+  DIRECTIONS.forEach(async direction => {
+    let page = await buildPage(browser);
+    directionQueue.push({
+      page: page,
+      direction: direction,
+      directionEvents: directionEvents,
+      STATES_SPA_EVALUATION: STATES_SPA_EVALUATION,
+      STATES_SPA_COMPARE: STATES_SPA_COMPARE,
+      IDS_IGNORE_SPA_COMPARE: IDS_IGNORE_SPA_COMPARE,
+      actionsM: actionsM,
+      utilsM: utilsM,
+      xpathM: xpathM,
+      getEventAndInteraction: getEventAndInteraction
+    });
+  });
+  return directionQueue.drain();
+}
+
+async function getEventAndInteraction(page, events) {
   const session = await page.target().createCDPSession();
-  await performBeforeAction(page, data.actionbefore, session);
-  if (!page.isClosed()) {
-    await xpath.removeSelectorOnPage(session);
-    let body = await getContent(page);
-    await checkEventsNewPage(page, data.browser, body, session, data.actionbefore);
-    page.close();
+  await getEvents(session, events);
+  await getInteraction(page, events);
+}
+
+async function getEvents(session, events) {
+  await xpathM.createSelectorOnPage(session);
+  await eventsM.getEvents(session, IDS_IGNORE_SPA_EVENTS, events);
+}
+
+async function getInteraction(page, events) {
+  if (FORMS != null) {
+    await formsM.getForms(page, FORMS, events);
+  }
+  if (INPUTS != null) {
+    await inputsM.getInputs(page, INPUTS, events, utilsM);
   }
 }
 
 async function buildPage(browser) {
   const page = await browser.newPage();
-  await page.goto(localhost, { waitUntil: 'networkidle2' });
+  await page.goto(url, { waitUntil: 'networkidle2' });
   page.setRequestInterception(true);
   page.on('request', (request) => {
     if (request.isNavigationRequest() == true && request.resourceType() != "xhr") {
@@ -83,56 +218,107 @@ async function buildPage(browser) {
   return page;
 }
 
-async function performBeforeAction(page, actions, session) {
-  for await (const action of actions) {
-    await xpath.createSelectorOnPage(session);
-    await Promise.allSettled([
-      page.waitForNetworkIdle(),
-      page.click(action.selector)
-    ]);
-  }
-}
+async function crawl(browser) {
+  if (events.length != 0 || directionEvents.length != 0) {
+    queue = asyncQ.queue(explore, numberOfProcess);
+    queue.drain(() => {
+      end(browser);
+    });
+    
+    // events.forEach(async event => {
+    //   directionEvents.push([event]);
+    // });
 
-async function getContent(page) {
-  return await page.content();
-}
-
-async function checkEventsNewPage(page, browser, body, session, actionbefore) {
-  if (!checkState(body)) {
-    STATES_SPA.add({ _body: body, _selector: actionbefore });
-
-    await xpath.createSelectorOnPage(session);
-    const events = await getEvents.describe(session, IDS_IGNORE_SPA_EVALUATION); // qual o melhor id para utilizar
-
-    events.forEach(async event => {
-      let action = actionbefore.slice(0);
-      action.push({
-        eventType: event.eventType,
-        selector: event.selector
-      });
+    directionEvents.forEach(async direction => {
       queue.push({
         browser: browser,
-        actionbefore: action
+        actionbefore: direction
       });
     });
+
+    events.forEach(async event => {
+      queue.push({
+        browser: browser,
+        actionbefore: [event]
+      });
+    });
+  } else {
+    end(browser);
   }
 }
 
-function checkState(body) {
-  for (const entry of STATES_SPA) {
-    if (entry._body == body) {
-      return true;
+async function addQueue(events, browser, actionbefore) {
+  events.forEach(async event => {
+    let action = actionbefore.slice(0);
+    action.push(event);
+    queue.push({
+      browser: browser,
+      actionbefore: action
+    });
+  });
+}
+
+async function explore(data) {
+  let page = await buildPage(data.browser);
+  const session = await page.target().createCDPSession();
+  await actionsM.performBeforeAction(page, data.actionbefore, session, xpathM);
+  if (!page.isClosed()) {
+    if (await utilsM.addState(session, page, STATES_SPA_COMPARE, IDS_IGNORE_SPA_COMPARE, STATES_SPA_EVALUATION, data.actionbefore, xpathM)) {
+      await xpathM.createSelectorOnPage(session);
+      const events = [];
+      await getEventAndInteraction(page, events);
+      await addQueue(events, data.browser, data.actionbefore)
     }
+    page.close();
   }
-  return false;
 }
-
 
 async function end(browser) {
   await browser.close();
-  console.log("--------------------------------");
-  console.log("States_SPA Size: " + STATES_SPA.size);
-  console.log("--------------------------------");
+  result();
 }
 
-run();
+async function endDebug() {
+  result();
+}
+
+function result() {
+  console.log("--------------------------------\n"
+    + "STATES_SPA_EVALUATION Size: " + STATES_SPA_EVALUATION.size
+    + "\n--------------------------------");
+}
+
+async function run(){
+  await setup();
+  return STATES_SPA_EVALUATION.size;
+}
+
+module.exports = { run };
+
+// run();
+
+// console.log(run().then((value) => {
+//   return value;
+// }));
+
+
+async function s(){
+  let i = await run();
+  console.log(i);
+  // return STATES_SPA_EVALUATION.size;
+}
+
+s();
+
+//    ../../QualState/qualstate/package.json
+//    C:\Users\Filipe\Desktop\QualState\qualstate
+//    C:\Users\Filipe        \QualState\qualstate\package.json'
+
+
+
+// 1:38:13 15 estados - 1
+// 1:34:52 15 estados - 2
+
+// 1:22:70 15 estados - 4
+// 1:18:42 15 estados - 5
+// 1:09:60 15 estados - 6

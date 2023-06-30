@@ -1,0 +1,50 @@
+{
+  "qualstate": {
+    "url" : "http://localhost:5173/",
+    "process" : 8,
+    "interaction": {
+      "forms": [
+        {
+          "input": [
+            {
+              "newFName": "filipe"
+            }
+          ],
+          "action": {
+            "id": "btnSubmitNewForm",
+            "event": "click"
+          },
+          "info": {
+            "formId": "newForm"
+          }
+        }
+      ],
+      "inputs": [
+        {
+          "value": {
+            "fname": "filipe"
+          }
+        }
+      ],
+      "directions": [
+        {
+          "actions": [
+            {
+              "values": {
+                "fname": "filipe"
+              },
+              "action": {
+                "id": "btnSubmit",
+                "eventType": "click"
+              }
+            }
+          ],
+          "info": {
+            "crawl": "continue",
+            "save": false
+          }
+        }
+      ]
+    }
+  }
+}

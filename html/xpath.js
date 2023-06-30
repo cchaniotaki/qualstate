@@ -1,6 +1,4 @@
-module.exports = { createSelectorOnPage, removeSelectorOnPage };
-
-async function createSelectorOnPage(session) {
+async function createSelectorOnPage(session) {    
     const objectGroup = 'dc24d2b3-f5ec-4273-a5c8-1459b5c78ca0';
     await session.send('Runtime.evaluate', {
         expression: `var e={564:(e,t)=>{Object.defineProperty(t,"__esModule",{value:!0}),t.QWElement=void 0;class n{constructor(e,t){this.element=e,this.elementsCSSRules=t,this.selector="";
@@ -36,3 +34,5 @@ async function removeSelectorOnPage(session) {
     });
     await session.send('Runtime.releaseObjectGroup', { objectGroup });
 }
+
+module.exports = { createSelectorOnPage, removeSelectorOnPage };
