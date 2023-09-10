@@ -4,8 +4,12 @@
     "ajv-errors": "^3.0.0",
     "async": "^3.2.4",
     "avj": "^0.0.0",
+    "chai": "^4.3.7",
+    "cors": "^2.8.5",
     "crypto": "^1.0.1",
     "crypto-js": "^4.1.1",
+    "detect-port": "^1.5.1",
+    "express": "^4.18.2",
     "fs": "^0.0.1-security",
     "jest": "^29.5.0",
     "mocha": "^10.2.0",
@@ -17,7 +21,17 @@
   "version": "1.0.0",
   "main": "qualState.js",
   "scripts": {
-    "test": "mocha"
+    "test": "mocha",
+    "test:form": "mocha test/form.test.js",
+    "test:inputs": "mocha test/inputs.test.js",
+    "test:directionsStop": "mocha test/directionsStop.test.js",
+    "test:directionsContinue": "mocha test/directionsContinue.test.js",
+    "test:ignoreEvents": "mocha test/ignoreEvents.test.js",
+    "test:ignoreCompare": "mocha test/ignoreCompare.test.js",
+    "test:httpRequest": "mocha test/httpRequest.test.js",
+    "test:maxStates": "mocha test/maxStates.test.js",
+    "test:viewport": "mocha test/viewport.test.js",
+    "test:regex": "mocha test/regex.test.js"
   },
   "repository": {
     "type": "git",
@@ -35,5 +49,8 @@
   "bugs": {
     "url": "https://github.com/qualweb/qualstate/issues"
   },
-  "homepage": "https://github.com/qualweb/qualstate#readme"
+  "homepage": "https://github.com/qualweb/qualstate#readme",
+  "directories": {
+    "test": "test"
+  }
 }

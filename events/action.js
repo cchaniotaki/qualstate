@@ -1,13 +1,13 @@
 const utilsM = require("../utils/utils.js");
-const logger = require("../logger/logger.js");
 
-async function performeAction(page, event, selector) {
+async function performeAction(page, event, selector, waitTime) {
     let valid = true;
     switch (event) {
         case 'click':
             await Promise.allSettled([
                 page.waitForNetworkIdle(),
-                page.click(selector)
+                page.click(selector),
+                new Promise(resolve => setTimeout(resolve, waitTime))
             ]).then((results) => {
                 results.forEach((result) => {
                     if (result.status == "rejected") {
@@ -16,35 +16,40 @@ async function performeAction(page, event, selector) {
                 });
             });
             return valid;
+        case 'houver':
+            const element = await page.$(selector);
+            if (element != null) {
+                await element.hover();
+                return valid;
+            }
+            valid = false;
+            return valid;
         default:
             valid = false;
             return valid;
     }
 }
 
-async function performBeforeAction(page, actions, session, xpath) {
+async function performBeforeAction(page, actions, session, xpath, logger, waitTime) {
     for await (const action of actions) {
         await xpath.createSelectorOnPage(session);
         if (action.user == "auto") {
-            //  click
-            // await Promise.allSettled([
-            //     page.waitForNetworkIdle(),
-            //     page.click(action.selector)
-            // ]);
-            if (!await performeAction(page, action.eventType, action.selector)) {
-                logger.logDetails("error", { 
-                    msg: "Não foi possivel realizar a ação manual",
+            if (!await performeAction(page, action.eventType, action.selector, waitTime)) {
+                logger.logDetails("error", {
+                    msg: "Não foi possivel realizar a ação auto",
                     action: action,
                     actions: actions
-                 });
-                 break;
+                });
+                break;
             };
-        } else if (action.user == "manual") {
+        }
+        else if (action.user == "manual") {
             if (action.beforeAction != null) {
                 let arrKeyBeforeActions = Object.keys(action.beforeAction);
                 for await (const idElement of arrKeyBeforeActions) {
                     await xpath.createSelectorOnPage(session);
                     if (await utilsM.pageEvaluateId(page, idElement)) {
+                        ;
                         switch (await utilsM.pageNodeName(page, idElement)) {
                             case 'text' || 'date' || 'datetime-local' || 'email' || 'month' || 'number' || 'password' || 'range' || 'tel' || 'time' || 'url' || 'week':
                                 await utilsM.pageInsertValue(page, idElement, action.beforeAction[idElement]);
@@ -55,36 +60,32 @@ async function performBeforeAction(page, actions, session, xpath) {
                             default:
                                 break;
                         }
-                    }
-                    if (action.wait != null) {
-                        await new Promise(resolve => setTimeout(resolve, action.wait));
+                        if (action.wait != null) {
+                            await new Promise(resolve => setTimeout(resolve, action.wait));
+                        }
                     }
                 }
             }
             if (action.endAction != null) {
                 await xpath.createSelectorOnPage(session);
-                if (action.wait != null) {
-                    await new Promise(resolve => setTimeout(resolve, action.wait));
-                }
                 if (await utilsM.pageEvaluateId(page, action.endAction["id"])) {
-                    if (!await performeAction(page, action.endAction["eventType"], "#" + action.endAction["id"])) {
-                        logger.logDetails("error", { 
+                    let isSelector = await utilsM.isSelector(page, action.endAction["id"])
+                    let selector = isSelector ? action.endAction["id"] : "#" + action.endAction["id"];
+                    if (!await performeAction(page, action.endAction["eventType"], selector)) {
+                        logger.logDetails("error", {
                             msg: "Não foi possivel realizar a ação manual",
                             action: action,
                             actions: actions
-                         });
-                         break;
+                        });
+                        break;
                     };
+                    if (action.wait != null) {
+                        await new Promise(resolve => setTimeout(resolve, action.wait));
+                    }
                 }
             }
-
         }
     }
-
-    logger.logDetails("info", { 
-        msg: "Ação realizada",
-        actions: actions
-     });
 }
 
 module.exports = { performBeforeAction };

@@ -13,3 +13,14 @@ Verificação na direção para evitar criar uma page sem que seja necessário.
 Mais flags no ficheiro de input:
     - url
     - número de processos
+
+
+
+
+
+// tempo e ver a média
+// 1:38:13 15 estados - 1
+// 1:34:52 15 estados - 2
+// 1:22:70 15 estados - 4
+// 1:18:42 15 estados - 5
+// 1:09:60 15 estados - 6

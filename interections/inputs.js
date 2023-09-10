@@ -3,18 +3,14 @@ async function getInputs(page, INPUTS, events, utilsM) {
         if (input.value) {
             let ids = Object.keys(input.value);
             let exist = true;
-            for (let i = 0; i < ids.length; i++) {
-                if (!await utilsM.pageEvaluateId(page, ids[i])) {
+            for await (const id of ids) {
+                if (!await utilsM.pageEvaluateId(page, id)) {
                     exist = false;
                     return;
                 }
             }
             if (exist) {
-                if (input.info) {
-                    if (input.info.wait != null) {
-                        filterInputs(input, events);
-                    }
-                }
+                filterInputs(input, events);
             }
         }
     };
@@ -31,7 +27,7 @@ function filterInputs(input, events) {
             inputObj.wait = input.info.wait;
         }
     }
-    events.push(input);
+    events.push(inputObj);
 
     return events;
 }

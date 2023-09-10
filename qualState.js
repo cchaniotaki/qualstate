@@ -16,8 +16,8 @@ const utilsM = require("./utils/utils.js");
 // jsonSchema
 const schema = require("./schema/schema.js");
 
-// logger
-const logger = require("./logger/logger.js");
+// loggerM
+const loggerM = require("./logger/logger.js");
 
 // npm
 const puppeteer = require('puppeteer');
@@ -27,147 +27,140 @@ const asyncQ = require('async');
 const STATES_SPA_EVALUATION = new Set();
 const STATES_SPA_COMPARE = new Set();
 
+let numberOfProcess = 1;
 let IDS_IGNORE_SPA_EVENTS;
 let IDS_IGNORE_SPA_COMPARE;
 let FORMS;
 let INPUTS;
 let DIRECTIONS;
-
 let url;
-let numberOfProcess = 1;
+let maxStates;
+let waitTime;
+let queue;
+let userAgent;
 let events = [];
 let directionEvents = [];
+let viewport = {};
 
-let queue;
-
-const localhost = "http://localhost:5173/"
-// const localhost = "http://qualweb.di.fc.ul.pt/placm/assertions/continent";
-
-async function readFile() {
-  try {
-    const data = fs.readFileSync('user_input/INPUT.json', 'utf8');
-    
-    let dataParse = JSON.parse(data);
-    if (!schema.validateSchema(dataParse)) {
-      return;
-    }
-
-    if (data && dataParse.qualstate != null) {
-      url = dataParse.qualstate.url;
-
-      if (dataParse.qualstate.process != null) {
-        numberOfProcess = dataParse.qualstate.process;
-      }
-
-      if (dataParse.qualstate.ignore != null) {
-        if (dataParse.qualstate.ignore.ids_compare != null) {
-          IDS_IGNORE_SPA_COMPARE = new Set(dataParse.qualstate.ignore.ids_compare);
-        }
-
-        if (dataParse.qualstate.ignore.ids_events != null) {
-          IDS_IGNORE_SPA_EVENTS = new Set(dataParse.qualstate.ignore.ids_events);
-        }
-      }
-      if (dataParse.qualstate.interaction != null) {
-        if (dataParse.qualstate.interaction.forms != null) {
-          FORMS = new Set(dataParse.qualstate.interaction.forms);
-        }
-
-        if (dataParse.qualstate.interaction.inputs != null) {
-          INPUTS = new Set(dataParse.qualstate.interaction.inputs);
-        }
-
-        if (dataParse.qualstate.interaction.directions != null) {
-          DIRECTIONS = new Set(dataParse.qualstate.interaction.directions);
-
-        }
-      }
-    }
-  } catch (err) {
-    console.error(err);
+async function validateOptions(options, isFile) {
+  let values;
+  if (isFile != null && isFile == true) {
+    values = await readFile(options);
+  } else {
+    values = await schema.validateSchema(options, loggerM);
   }
-  // fs.readFile('user_input/INPUT.json', 'utf8', (err, data) => {
-  //   if (err) {
-  //     console.error(err);
-  //     return;
-  //   }
 
-  //   let dataParse = JSON.parse(data);
-  //   if (!schema.validateSchema(dataParse)) {
-  //     return;
-  //   }
+  if (values.url != null) {
+    url = values.url;
+  }
 
-  //   if (data && dataParse.qualstate != null) {
-  //     url = dataParse.qualstate.url;
+  if (values.viewport != null) {
+    viewport.mobile = values.viewport.mobile != null ? values.viewport.mobile : false;
+    viewport.landscape = values.viewport.landscape != null ? values.viewport.landscape : true;
+    if (values.viewport.userAgent != null) {
+      userAgent = values.viewport.userAgent;
+    }
+    viewport.width = values.viewport.resolution?.width != null ? values.viewport.resolution.width : 0;
+    viewport.height = values.viewport.resolution?.height != null ? values.viewport.resolution.height : 0;
+  }
 
-  //     if (dataParse.qualstate.process != null) {
-  //       numberOfProcess = dataParse.qualstate.process;
-  //     }
+  if (values.log != null) {
+    if (values.log.file != null) {
+      loggerM.setFileLog(values.log.file);
+    }
+    if (values.log.console != null) {
+      loggerM.setConsoleLog(values.log.console);
+    }
+  }
 
-  //     if (dataParse.qualstate.ignore != null) {
-  //       if (dataParse.qualstate.ignore.ids_compare != null) {
-  //         IDS_IGNORE_SPA_COMPARE = new Set(dataParse.qualstate.ignore.ids_compare);
-  //       }
+  if (values.waitTime != null) {
+    waitTime = values.waitTime;
+  }
 
-  //       if (dataParse.qualstate.ignore.ids_events != null) {
-  //         IDS_IGNORE_SPA_EVENTS = new Set(dataParse.qualstate.ignore.ids_events);
-  //       }
-  //     }
-  //     if (dataParse.qualstate.interaction != null) {
-  //       if (dataParse.qualstate.interaction.forms != null) {
-  //         FORMS = new Set(dataParse.qualstate.interaction.forms);
-  //       }
+  if (values.numeroOfprocess != null) {
+    numberOfProcess = values.numeroOfprocess;
+  }
 
-  //       if (dataParse.qualstate.interaction.inputs != null) {
-  //         INPUTS = new Set(dataParse.qualstate.interaction.inputs);
-  //       }
+  if (values.maxStates != null) {
+    maxStates = values.maxStates;
+  }
 
-  //       if (dataParse.qualstate.interaction.directions != null) {
-  //         DIRECTIONS = new Set(dataParse.qualstate.interaction.directions);
+  if (values.ignore != null) {
+    if (values.ignore.ids_compare != null) {
+      IDS_IGNORE_SPA_COMPARE = new Set(values.ignore.ids_compare);
+    }
+    if (values.ignore.ids_events != null) {
+      IDS_IGNORE_SPA_EVENTS = new Set(values.ignore.ids_events);
+    }
+  }
 
-  //       }
-  //     }
-  //   }
-
-  // run();
-  // });
+  if (values.interaction != null) {
+    if (values.interaction.forms != null) {
+      FORMS = new Set(values.interaction.forms);
+    }
+    if (values.interaction.inputs != null) {
+      INPUTS = new Set(values.interaction.inputs);
+    }
+    if (values.interaction.directions != null) {
+      DIRECTIONS = new Set(values.interaction.directions);
+    }
+  }
+  return true;
 }
 
-async function setup() {
-  if (fs.existsSync('user_input/INPUT.json')) {
-    await readFile();
-  } else {
-    logger.logDetails("error", {
-      msg: "Não existe ficheiro de input"
-    });
-    return;
+async function readFile(path) {
+  try {
+    const data = fs.readFileSync(path, 'utf8');
+    return JSON.parse(data);
+  } catch (err) {
+    throw new Error("Error: " + err);
   }
+}
 
-  const browser = await puppeteer.launch({ headless: false });
-  var [page] = await browser.pages();
-  await page.goto(url, { waitUntil: 'networkidle2' });
-  const session = await page.target().createCDPSession();
-  await utilsM.addState(session, page, STATES_SPA_COMPARE, IDS_IGNORE_SPA_COMPARE, STATES_SPA_EVALUATION, "original", xpathM);
+async function run() {
+  try {
+    const browser = await puppeteer.launch({ headless: false });
+    var [page] = await browser.pages();
+    if (userAgent != null) {
+      await page.setUserAgent(userAgent);
+    }
+    if (Object.keys(viewport).length > 0) {
+      await page.setViewport(viewport);
+    }
+    await page.goto(url, { waitUntil: 'networkidle2' });
 
-  // browser.on('targetdestroyed', async function () { // debug
-  //   if ((await browser.pages()).length == 0) {
-  //     endDebug();
-  //   }
-  // });
+    const session = await page.target().createCDPSession();
+    if (DIRECTIONS != null && DIRECTIONS.length != 0) {
+      await checkForDirections(browser);
+    };
+    await getEventAndInteraction(page, events);
+    await utilsM.addState(session, page, STATES_SPA_COMPARE, IDS_IGNORE_SPA_COMPARE, STATES_SPA_EVALUATION, "original", xpathM, loggerM);
+    await populateQueue(browser);
 
-  if (DIRECTIONS != null && DIRECTIONS.length != 0) {
-    await checkForDirections(browser);
-  };
-  await getEventAndInteraction(page, events);
+    // console.log(events);
+    // console.log(events.length);
 
-  await crawl(browser);
-  await queue.drain();
-};
+    if (events.length == 0 && directionEvents.length == 0) {
+      end(browser);
+    } else {
+      await queue.drain();
+    }
+  } catch (error) {
+    console.error(error);
+    process.exit();
+  }
+}
 
 async function checkForDirections(browser) {
   let directionQueue = asyncQ.queue(directionsM.executeDirection, '1');
   DIRECTIONS.forEach(async direction => {
     let page = await buildPage(browser);
+    if (userAgent != null) {
+      await page.setUserAgent(userAgent);
+    }
+    if (Object.keys(viewport).length > 0) {
+      await page.setViewport(viewport);
+    }
     directionQueue.push({
       page: page,
       direction: direction,
@@ -176,6 +169,7 @@ async function checkForDirections(browser) {
       STATES_SPA_COMPARE: STATES_SPA_COMPARE,
       IDS_IGNORE_SPA_COMPARE: IDS_IGNORE_SPA_COMPARE,
       actionsM: actionsM,
+      loggerM: loggerM,
       utilsM: utilsM,
       xpathM: xpathM,
       getEventAndInteraction: getEventAndInteraction
@@ -206,8 +200,20 @@ async function getInteraction(page, events) {
 
 async function buildPage(browser) {
   const page = await browser.newPage();
+  if (userAgent != null) {
+    await page.setUserAgent(userAgent);
+  }
+  if (Object.keys(viewport).length > 0) {
+    await page.setViewport(viewport);
+  }
   await page.goto(url, { waitUntil: 'networkidle2' });
   page.setRequestInterception(true);
+  page.on('dialog', async dialog => {
+    await dialog.dismiss();
+  });
+  page.on('popup', async popup => {
+    await popup.close();
+  });
   page.on('request', (request) => {
     if (request.isNavigationRequest() == true && request.resourceType() != "xhr") {
       page.close();
@@ -218,24 +224,18 @@ async function buildPage(browser) {
   return page;
 }
 
-async function crawl(browser) {
+async function populateQueue(browser) {
   if (events.length != 0 || directionEvents.length != 0) {
     queue = asyncQ.queue(explore, numberOfProcess);
-    queue.drain(() => {
+    queue.drain(async () => {
       end(browser);
     });
-    
-    // events.forEach(async event => {
-    //   directionEvents.push([event]);
-    // });
-
     directionEvents.forEach(async direction => {
       queue.push({
         browser: browser,
         actionbefore: direction
       });
     });
-
     events.forEach(async event => {
       queue.push({
         browser: browser,
@@ -261,12 +261,16 @@ async function addQueue(events, browser, actionbefore) {
 async function explore(data) {
   let page = await buildPage(data.browser);
   const session = await page.target().createCDPSession();
-  await actionsM.performBeforeAction(page, data.actionbefore, session, xpathM);
+  await actionsM.performBeforeAction(page, data.actionbefore, session, xpathM, loggerM, waitTime);
   if (!page.isClosed()) {
-    if (await utilsM.addState(session, page, STATES_SPA_COMPARE, IDS_IGNORE_SPA_COMPARE, STATES_SPA_EVALUATION, data.actionbefore, xpathM)) {
-      await xpathM.createSelectorOnPage(session);
-      const events = [];
-      await getEventAndInteraction(page, events);
+    await xpathM.createSelectorOnPage(session);
+    const events = [];
+    await getEventAndInteraction(page, events);
+    if (await utilsM.addState(session, page, STATES_SPA_COMPARE, IDS_IGNORE_SPA_COMPARE, STATES_SPA_EVALUATION, data.actionbefore, xpathM, loggerM)) {
+      if (maxStates != null && STATES_SPA_COMPARE.size >= maxStates) {
+        end(data.browser);
+        return;
+      }
       await addQueue(events, data.browser, data.actionbefore)
     }
     page.close();
@@ -274,51 +278,29 @@ async function explore(data) {
 }
 
 async function end(browser) {
-  await browser.close();
-  result();
+  if (browser != null) {
+    await browser.close();
+  }
+  console.log(await queue.length());
+  if (queue != null && await queue.length() > 0) {
+    await queue.kill();
+  }
 }
 
-async function endDebug() {
-  result();
+async function crawl(qualstateOptions, isFile) {
+  let start = Date.now();
+  if (!(await validateOptions(qualstateOptions, isFile))) {
+    return;
+  }
+  await run();
+  let end = Date.now();
+  loggerM.logDetails("info", {
+    states: "STATES_SPA_EVALUATION Size: " + STATES_SPA_EVALUATION.size,
+    duration: `Execution time: ${end - start} ms`
+  });
+  console.log("STATES_SPA_EVALUATION Size: " + STATES_SPA_EVALUATION.size);
+  console.log(`Execution time: ${new Date(end - start).toISOString().slice(11, 19)} ms`);
+  return STATES_SPA_EVALUATION;
 }
 
-function result() {
-  console.log("--------------------------------\n"
-    + "STATES_SPA_EVALUATION Size: " + STATES_SPA_EVALUATION.size
-    + "\n--------------------------------");
-}
-
-async function run(){
-  await setup();
-  return STATES_SPA_EVALUATION.size;
-}
-
-module.exports = { run };
-
-// run();
-
-// console.log(run().then((value) => {
-//   return value;
-// }));
-
-
-async function s(){
-  let i = await run();
-  console.log(i);
-  // return STATES_SPA_EVALUATION.size;
-}
-
-s();
-
-//    ../../QualState/qualstate/package.json
-//    C:\Users\Filipe\Desktop\QualState\qualstate
-//    C:\Users\Filipe        \QualState\qualstate\package.json'
-
-
-
-// 1:38:13 15 estados - 1
-// 1:34:52 15 estados - 2
-
-// 1:22:70 15 estados - 4
-// 1:18:42 15 estados - 5
-// 1:09:60 15 estados - 6
+module.exports = { crawl };

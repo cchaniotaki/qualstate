@@ -1,6 +1,17 @@
 const winston = require('winston')
 
-const logConfiguration = {
+let consoleLog = false;
+let fileLog = true;
+
+function setConsoleLog(value) {
+  consoleLog = value;
+}
+
+function setFileLog(value) {
+  fileLog = value;
+}
+
+const logInfoConfiguration = {
   transports: [
     new winston.transports.File({
       filename: 'output/logs.log',
@@ -15,20 +26,45 @@ const logConfiguration = {
     winston.format.prettyPrint(),
     winston.format.printf(info => `${info.level}: ${[info.timestamp]}\n${JSON.stringify(info.details, undefined, 2)}`)
   )
-
 };
-let logger = winston.createLogger(logConfiguration);
 
-async function logDetails(type, details) {
-  logFile(type, details);
-  // logConsole(type, details);
+const logStatesConfiguration = {
+  transports: [
+    new winston.transports.File({
+      filename: 'output/states.log',
+      options: { flags: 'w' },
+      json: true
+    })],
+  format: winston.format.combine(
+    winston.format.json(),
+    winston.format.prettyPrint(),
+    winston.format.printf(info => `${JSON.stringify(info.details, undefined, 2)}`)
+  )
+};
+
+let logInfo = winston.createLogger(logInfoConfiguration);
+let logStates = winston.createLogger(logStatesConfiguration);
+
+async function logDetails(type, detailsInfo, detailState) {
+  if (consoleLog) {
+    logConsole(type, detailsInfo);
+  }
+  if (fileLog) {
+    logFile(type, detailsInfo, detailState);
+  }
 }
 
-async function logFile(type, details) {
-  logger.log({
+async function logFile(type, detailsInfo, detailState) {
+  logInfo.log({
     level: type,
-    details: details
+    details: detailsInfo
   });
+  if (detailState != null) {
+    logStates.log({
+      level: type,
+      details: detailState
+    });
+  }
 }
 
 async function logConsole(type, details) {
@@ -44,4 +80,4 @@ async function logConsole(type, details) {
   }
 }
 
-module.exports = { logDetails };
+module.exports = { logDetails, setConsoleLog, setFileLog };

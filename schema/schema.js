@@ -1,4 +1,3 @@
-const logger = require("../logger/logger.js");
 const Ajv = require("ajv");
 const ajv = new Ajv({ allErrors: true });
 
@@ -7,180 +6,160 @@ const separator = "____SEPARATOR___";
 const schema = {
 	type: "object",
 	properties: {
-		qualstate: {
+		url: {
+			"type": "string"
+		},
+		waitTime: {
+			"type": "number"
+		},
+		maxStates: {
+			"type": "number"
+		},
+		numeroOfprocess: {
+			"type": "number"
+		},
+		viewport: {
 			type: "object",
 			properties: {
-				url:  {
+				mobile: {
+					"type": "boolean"
+				},
+				landscape: {
+					"type": "boolean"
+				},
+				userAgent: {
 					"type": "string"
 				},
-				process: {
-					"type": "number"
-				},
-				ignore: {
+				resolution: {
 					type: "object",
 					properties: {
-						ids_compare: {
-							"type": "array",
-							"items": {
-								"type": "string"
-							},
-							"minItems": 1
+						width: {
+							"type": "number"
 						},
-						ids_events: {
-							"type": "array",
-							"items": {
-								"type": "string"
-							},
-							"minItems": 1
+						height: {
+							"type": "number"
 						}
 					},
-					"minProperties": 1,
-					"maxProperties": 2,
+					"required": ["width", "height"],
 					additionalProperties: false
+				}
+			},
+			"minProperties": 1,
+			"maxProperties": 4,
+			additionalProperties: false
+		},
+		log: {
+			type: "object",
+			properties: {
+				file: {
+					"type": "boolean"
 				},
-				interaction: {
-					type: "object",
-					properties: {
-						forms: {
-							"type": "array",
-							"items": {
-								"type": "object",
-								properties: {
-									input: {
-										"type": "array",
-										"items": {
-											"type": "object",
-											"minProperties": 1
-										},
-										"minItems": 1
-									},
-									action: {
-										"type": "object",
-										properties: {
-											id: {
-												"type": "string"
-											},
-											event: {
-												"type": "string"
-											},
-											additionalProperties: false
-										},
-										"required": ["id", "event"],
-
-									},
-									info: {
-										"type": "object",
-										properties: {
-											formId: {
-												"type": "string"
-											},
-											wait: {
-												"type": "number"
-											}
-										},
-										"required": ["formId"]
-									}
-								},
-								additionalProperties: false,
-								"anyOf": [
-									{ "required": ["input", "info"] },
-									{ "required": ["action", "info"] },
-									{ "required": ["input", "action", "info"] }
-								]
-							},
-							"minItems": 1
-						},
-						inputs: {
-							"type": "array",
-							"items": {
-								"type": "object",
-								properties: {
-									value: {
-										"type": "object",
-										"minProperties": 1
-									},
-									info: {
-										"type": "object",
-										properties: {
-											wait: {
-												"type": "number"
-											}
-										},
-										"required": ["wait"],
-										additionalProperties: false,
-									}
-								},
-								additionalProperties: false,
-								"required": ["value"]
-							},
-							"minItems": 1
-						},
-						directions: {
-							"type": "array",
-							"items": {
-								"type": "object",
-								properties: {
-									actions: {
-										"type": "array",
-										"items": {
-											"type": "object",
-											properties: {
-												values: {
-													"type": "object",
-													"minProperties": 1
-												},
-												action: {
-													"type": "object",
-													properties: {
-														id: {
-															"type": "string"
-														},
-														eventType: {
-															"type": "string"
-														},
-														additionalProperties: false
-													},
-													"required": ["id", "eventType"]
-
-												},
-												info: {
-													"type": "object",
-													properties: {
-														wait: {
-															"type": "number"
-														}
-													},
-													"required": ["wait"],
-													additionalProperties: false,
-												}
-											}
-										},
-										"minItems": 1
-									},
-									info: {
-										"type": "object",
-										properties: {
-											crawl: {
-												"type": "string",
-												"enum": ["stop", "continue"]
-											},
-											save: {
-												"type": "boolean"
-											}
-										},
-										"required": ["crawl", "save"],
-										additionalProperties: false,
-									}
-								},
-								additionalProperties: false,
-								"required": ["info", "actions"]
-							},
-							"minItems": 1
-						}
+				console: {
+					"type": "boolean"
+				}
+			},
+			"minProperties": 1,
+			"maxProperties": 2,
+			additionalProperties: false
+		},
+		ignore: {
+			type: "object",
+			properties: {
+				ids_compare: {
+					"type": "array",
+					"items": {
+						"type": "string"
 					},
-					"minProperties": 1,
-					"maxProperties": 3,
-					additionalProperties: false
+					"minItems": 1
+				},
+				ids_events: {
+					"type": "array",
+					"items": {
+						"type": "string"
+					},
+					"minItems": 1
+				}
+			},
+			"minProperties": 1,
+			"maxProperties": 2,
+			additionalProperties: false
+		},
+		interaction: {
+			type: "object",
+			properties: {
+				forms: {
+					"type": "array",
+					"items": {
+						"type": "object",
+						properties: {
+							input: {
+								"type": "array",
+								"items": {
+									"type": "object",
+									"minProperties": 1
+								},
+								"minItems": 1
+							},
+							action: {
+								"type": "object",
+								properties: {
+									id: {
+										"type": "string"
+									},
+									event: {
+										"type": "string"
+									},
+									additionalProperties: false
+								},
+								"required": ["id", "event"],
+
+							},
+							info: {
+								"type": "object",
+								properties: {
+									formId: {
+										"type": "string"
+									},
+									wait: {
+										"type": "number"
+									}
+								},
+								"required": ["formId"]
+							}
+						},
+						additionalProperties: false,
+						"anyOf": [
+							{ "required": ["input", "info"] },
+							{ "required": ["action", "info"] },
+							{ "required": ["input", "action", "info"] }
+						]
+					},
+					"minItems": 1
+				},
+				inputs: {
+					"type": "array",
+					"items": {
+						"type": "object",
+						properties: {
+							value: {
+								"type": "object",
+								"minProperties": 1
+							},
+							info: {
+								"type": "object",
+								properties: {
+									wait: {
+										"type": "number"
+									}
+								},
+								"required": ["wait"],
+								additionalProperties: false,
+							}
+						},
+						additionalProperties: false,
+						"required": ["value"]
+					},
+					"minItems": 1
 				},
 				directions: {
 					"type": "array",
@@ -208,7 +187,6 @@ const schema = {
 												additionalProperties: false
 											},
 											"required": ["id", "eventType"]
-
 										},
 										info: {
 											"type": "object",
@@ -246,24 +224,513 @@ const schema = {
 				}
 			},
 			"minProperties": 1,
-			"maxProperties": 5,
-			additionalProperties: false,			
-			"required": ["url"],
+			"maxProperties": 3,
+			additionalProperties: false
 		}
-	}
+	},
+	"minProperties": 1,
+	"maxProperties": 5,
+	additionalProperties: false,
+	"required": ["url"],
 }
 
-function validateSchema(data) { // npm install ajv-errors e logger nas opções do ajv
+// const schema = {
+// 	type: "object",
+// 	properties: {
+// 		qualstate: {
+// 			type: "object",
+// 			properties: {
+// 				url: {
+// 					"type": "string"
+// 				},
+// 				waitTime: {
+// 					"type": "number"
+// 				},
+// 				maxStates: {
+// 					"type": "number"
+// 				},
+// 				numeroOfprocess: {
+// 					"type": "number"
+// 				},
+// 				viewport: {
+// 					type: "object",
+// 					properties: {
+// 						mobile: {
+// 							"type": "boolean"
+// 						},
+// 						landscape: {
+// 							"type": "boolean"
+// 						},
+// 						userAgent: {
+// 							"type": "string"
+// 						},
+// 						resolution: {
+// 							type: "object",
+// 							properties: {
+// 								width: {
+// 									"type": "number"
+// 								},
+// 								height: {
+// 									"type": "number"
+// 								}
+// 							},
+// 							"required": ["width", "height"],
+// 							additionalProperties: false
+// 						}
+// 					},
+// 					"minProperties": 1,
+// 					"maxProperties": 4,
+// 					additionalProperties: false
+// 				},
+// 				log: {
+// 					type: "object",
+// 					properties: {
+// 						file: {
+// 							"type": "boolean"
+// 						},
+// 						console: {
+// 							"type": "boolean"
+// 						}
+// 					},
+// 					"minProperties": 1,
+// 					"maxProperties": 2,
+// 					additionalProperties: false
+// 				},
+// 				ignore: {
+// 					type: "object",
+// 					properties: {
+// 						ids_compare: {
+// 							"type": "array",
+// 							"items": {
+// 								"type": "string"
+// 							},
+// 							"minItems": 1
+// 						},
+// 						ids_events: {
+// 							"type": "array",
+// 							"items": {
+// 								"type": "string"
+// 							},
+// 							"minItems": 1
+// 						}
+// 					},
+// 					"minProperties": 1,
+// 					"maxProperties": 2,
+// 					additionalProperties: false
+// 				},
+// 				interaction: {
+// 					type: "object",
+// 					properties: {
+// 						forms: {
+// 							"type": "array",
+// 							"items": {
+// 								"type": "object",
+// 								properties: {
+// 									input: {
+// 										"type": "array",
+// 										"items": {
+// 											"type": "object",
+// 											"minProperties": 1
+// 										},
+// 										"minItems": 1
+// 									},
+// 									action: {
+// 										"type": "object",
+// 										properties: {
+// 											id: {
+// 												"type": "string"
+// 											},
+// 											event: {
+// 												"type": "string"
+// 											},
+// 											additionalProperties: false
+// 										},
+// 										"required": ["id", "event"],
+
+// 									},
+// 									info: {
+// 										"type": "object",
+// 										properties: {
+// 											formId: {
+// 												"type": "string"
+// 											},
+// 											wait: {
+// 												"type": "number"
+// 											}
+// 										},
+// 										"required": ["formId"]
+// 									}
+// 								},
+// 								additionalProperties: false,
+// 								"anyOf": [
+// 									{ "required": ["input", "info"] },
+// 									{ "required": ["action", "info"] },
+// 									{ "required": ["input", "action", "info"] }
+// 								]
+// 							},
+// 							"minItems": 1
+// 						},
+// 						inputs: {
+// 							"type": "array",
+// 							"items": {
+// 								"type": "object",
+// 								properties: {
+// 									value: {
+// 										"type": "object",
+// 										"minProperties": 1
+// 									},
+// 									info: {
+// 										"type": "object",
+// 										properties: {
+// 											wait: {
+// 												"type": "number"
+// 											}
+// 										},
+// 										"required": ["wait"],
+// 										additionalProperties: false,
+// 									}
+// 								},
+// 								additionalProperties: false,
+// 								"required": ["value"]
+// 							},
+// 							"minItems": 1
+// 						},
+// 						directions: {
+// 							"type": "array",
+// 							"items": {
+// 								"type": "object",
+// 								properties: {
+// 									actions: {
+// 										"type": "array",
+// 										"items": {
+// 											"type": "object",
+// 											properties: {
+// 												values: {
+// 													"type": "object",
+// 													"minProperties": 1
+// 												},
+// 												action: {
+// 													"type": "object",
+// 													properties: {
+// 														id: {
+// 															"type": "string"
+// 														},
+// 														eventType: {
+// 															"type": "string"
+// 														},
+// 														additionalProperties: false
+// 													},
+// 													"required": ["id", "eventType"]
+// 												},
+// 												info: {
+// 													"type": "object",
+// 													properties: {
+// 														wait: {
+// 															"type": "number"
+// 														}
+// 													},
+// 													"required": ["wait"],
+// 													additionalProperties: false,
+// 												}
+// 											}
+// 										},
+// 										"minItems": 1
+// 									},
+// 									info: {
+// 										"type": "object",
+// 										properties: {
+// 											crawl: {
+// 												"type": "string",
+// 												"enum": ["stop", "continue"]
+// 											},
+// 											save: {
+// 												"type": "boolean"
+// 											}
+// 										},
+// 										"required": ["crawl", "save"],
+// 										additionalProperties: false,
+// 									}
+// 								},
+// 								additionalProperties: false,
+// 								"required": ["info", "actions"]
+// 							},
+// 							"minItems": 1
+// 						}
+// 					},
+// 					"minProperties": 1,
+// 					"maxProperties": 3,
+// 					additionalProperties: false
+// 				}
+// 			},
+// 			"minProperties": 1,
+// 			"maxProperties": 5,
+// 			additionalProperties: false,
+// 			"required": ["url"],
+// 		}
+// 	}
+// }
+
+// const schema = {
+// type: "object",
+// properties: {
+// 	qualstate: {
+// 		type: "object",
+// 		properties: {
+// 			url: {
+// 				"type": "string"
+// 			},
+// 			process: {
+// 				"type": "number"
+// 			},
+// 			ignore: {
+// 				type: "object",
+// 				properties: {
+// 					ids_compare: {
+// 						"type": "array",
+// 						"items": {
+// 							"type": "string"
+// 						},
+// 						"minItems": 1
+// 					},
+// 					ids_events: {
+// 						"type": "array",
+// 						"items": {
+// 							"type": "string"
+// 						},
+// 						"minItems": 1
+// 					}
+// 				},
+// 				"minProperties": 1,
+// 				"maxProperties": 2,
+// 				additionalProperties: false
+// 			},
+// 			interaction: {
+// 				type: "object",
+// 				properties: {
+// 					forms: {
+// 						"type": "array",
+// 						"items": {
+// 							"type": "object",
+// 							properties: {
+// 								input: {
+// 									"type": "array",
+// 									"items": {
+// 										"type": "object",
+// 										"minProperties": 1
+// 									},
+// 									"minItems": 1
+// 								},
+// 								action: {
+// 									"type": "object",
+// 									properties: {
+// 										id: {
+// 											"type": "string"
+// 										},
+// 										event: {
+// 											"type": "string"
+// 										},
+// 										additionalProperties: false
+// 									},
+// 									"required": ["id", "event"],
+
+// 								},
+// 								info: {
+// 									"type": "object",
+// 									properties: {
+// 										formId: {
+// 											"type": "string"
+// 										},
+// 										wait: {
+// 											"type": "number"
+// 										}
+// 									},
+// 									"required": ["formId"]
+// 								}
+// 							},
+// 							additionalProperties: false,
+// 							"anyOf": [
+// 								{ "required": ["input", "info"] },
+// 								{ "required": ["action", "info"] },
+// 								{ "required": ["input", "action", "info"] }
+// 							]
+// 						},
+// 						"minItems": 1
+// 					},
+// 					inputs: {
+// 						"type": "array",
+// 						"items": {
+// 							"type": "object",
+// 							properties: {
+// 								value: {
+// 									"type": "object",
+// 									"minProperties": 1
+// 								},
+// 								info: {
+// 									"type": "object",
+// 									properties: {
+// 										wait: {
+// 											"type": "number"
+// 										}
+// 									},
+// 									"required": ["wait"],
+// 									additionalProperties: false,
+// 								}
+// 							},
+// 							additionalProperties: false,
+// 							"required": ["value"]
+// 						},
+// 						"minItems": 1
+// 					},
+// 					directions: {
+// 						"type": "array",
+// 						"items": {
+// 							"type": "object",
+// 							properties: {
+// 								actions: {
+// 									"type": "array",
+// 									"items": {
+// 										"type": "object",
+// 										properties: {
+// 											values: {
+// 												"type": "object",
+// 												"minProperties": 1
+// 											},
+// 											action: {
+// 												"type": "object",
+// 												properties: {
+// 													id: {
+// 														"type": "string"
+// 													},
+// 													eventType: {
+// 														"type": "string"
+// 													},
+// 													additionalProperties: false
+// 												},
+// 												"required": ["id", "eventType"]
+// 											},
+// 											info: {
+// 												"type": "object",
+// 												properties: {
+// 													wait: {
+// 														"type": "number"
+// 													}
+// 												},
+// 												"required": ["wait"],
+// 												additionalProperties: false,
+// 											}
+// 										}
+// 									},
+// 									"minItems": 1
+// 								},
+// 								info: {
+// 									"type": "object",
+// 									properties: {
+// 										crawl: {
+// 											"type": "string",
+// 											"enum": ["stop", "continue"]
+// 										},
+// 										save: {
+// 											"type": "boolean"
+// 										}
+// 									},
+// 									"required": ["crawl", "save"],
+// 									additionalProperties: false,
+// 								}
+// 							},
+// 							additionalProperties: false,
+// 							"required": ["info", "actions"]
+// 						},
+// 						"minItems": 1
+// 					}
+// 				},
+// 				"minProperties": 1,
+// 				"maxProperties": 3,
+// 				additionalProperties: false
+// 			},
+// 			directions: {
+// 				"type": "array",
+// 				"items": {
+// 					"type": "object",
+// 					properties: {
+// 						actions: {
+// 							"type": "array",
+// 							"items": {
+// 								"type": "object",
+// 								properties: {
+// 									values: {
+// 										"type": "object",
+// 										"minProperties": 1
+// 									},
+// 									action: {
+// 										"type": "object",
+// 										properties: {
+// 											id: {
+// 												"type": "string"
+// 											},
+// 											eventType: {
+// 												"type": "string"
+// 											},
+// 											additionalProperties: false
+// 										},
+// 										"required": ["id", "eventType"]
+
+// 									},
+// 									info: {
+// 										"type": "object",
+// 										properties: {
+// 											wait: {
+// 												"type": "number"
+// 											}
+// 										},
+// 										"required": ["wait"],
+// 										additionalProperties: false,
+// 									}
+// 								}
+// 							},
+// 							"minItems": 1
+// 						},
+// 						info: {
+// 							"type": "object",
+// 							properties: {
+// 								crawl: {
+// 									"type": "string",
+// 									"enum": ["stop", "continue"]
+// 								},
+// 								save: {
+// 									"type": "boolean"
+// 								}
+// 							},
+// 							"required": ["crawl", "save"],
+// 							additionalProperties: false,
+// 						}
+// 					},
+// 					additionalProperties: false,
+// 					"required": ["info", "actions"]
+// 				},
+// 				"minItems": 1
+// 			}
+// 		},
+// 		"minProperties": 1,
+// 		"maxProperties": 5,
+// 		additionalProperties: false,
+// 		"required": ["url"],
+// 	}
+// }
+// }
+
+async function validateSchema(data, logger) {
 	const validate = ajv.compile(schema);
 	const valid = validate(data);
 	if (valid) {
+		// Se não quero prints faz sentido este estr aqui
 		logger.logDetails("info", { msg: "Input válido" });
-		return true
+		return data;
 	} else {
-		ajv.errorsText(validate.errors, {separator: separator}).split(separator).forEach(error => {
-			logger.logDetails("error", { msg: error });
+		let errorMsg = "";
+		await ajv.errorsText(validate.errors, { separator: separator }).split(separator).forEach(error => {
+			errorMsg += "\n\t" + error;
 		});
-		return false;
+		throw new Error("Reading the options: " + errorMsg);
 	}
 }
 

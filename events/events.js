@@ -22,7 +22,7 @@ async function getEvents(session, idsToIgnore, events, selector = '*') { // reve
 
         if (descriptor.listeners.length != 0 || checkOtherTags(descriptor)) {
             if (idsToIgnore != null && idsToIgnore.length != 0) {
-                if (!idsToIgnore.has(descriptor.value.description.split("#").pop())) {
+                if (!idsToIgnore.has(descriptor.value.description.split("#").pop()) && !utilsM.checkElements(idsToIgnore, descriptor.node.attributes)) {
                     elements.push(descriptor);
                 }
             } else {
@@ -32,7 +32,7 @@ async function getEvents(session, idsToIgnore, events, selector = '*') { // reve
     }
 
     await session.send('Runtime.releaseObjectGroup', { objectGroup });
-    await filterEvents(elements, events);
+    await filterEvents(elements, events, idsToIgnore);
 }
 
 function checkOtherTags(element) {
@@ -64,12 +64,21 @@ async function filterEvents(elements, events) {
         });
         if (!checkOtherTags(el)) {
             el.listeners.forEach(e => {
-                if (e.type == "click") {  // só permite clicks
+                if (e.type == "click") {
                     events.push({
                         user: "auto",
                         id: el.value.description,
                         className: el.value.className,
                         eventType: e.type,
+                        selector: selector
+                    });
+                }
+                if (e.type == "mouseenter") {
+                    events.push({
+                        user: "auto",
+                        id: el.value.description,
+                        className: el.value.className,
+                        eventType: "houver",
                         selector: selector
                     });
                 }
@@ -79,6 +88,7 @@ async function filterEvents(elements, events) {
                 case 'A':
                     events.push({
                         user: "auto",
+                        nodeType: "A",
                         id: el.value.description,
                         className: el.value.className,
                         eventType: "click",
