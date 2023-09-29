@@ -1,6 +1,6 @@
 // events
 const eventsM = require("./events/events.js");
-const actionsM = require("./events/action.js");
+const actionsM = require("./actions/action.js");
 
 // html
 const xpathM = require("./html/xpath.js");
@@ -28,6 +28,7 @@ const STATES_SPA_EVALUATION = new Set();
 const STATES_SPA_COMPARE = new Set();
 
 let numberOfProcess = 1;
+let headlessOption = true;
 let IDS_IGNORE_SPA_EVENTS;
 let IDS_IGNORE_SPA_COMPARE;
 let FORMS;
@@ -42,9 +43,9 @@ let events = [];
 let directionEvents = [];
 let viewport = {};
 
-async function validateOptions(options, isFile) {
+async function validateOptions(options) {
   let values;
-  if (isFile != null && isFile == true) {
+  if (fs.existsSync(options)) {
     values = await readFile(options);
   } else {
     values = await schema.validateSchema(options, loggerM);
@@ -52,6 +53,10 @@ async function validateOptions(options, isFile) {
 
   if (values.url != null) {
     url = values.url;
+  }
+
+  if (values.headless != null) {
+    headlessOption = values.headless;
   }
 
   if (values.viewport != null) {
@@ -77,8 +82,8 @@ async function validateOptions(options, isFile) {
     waitTime = values.waitTime;
   }
 
-  if (values.numeroOfprocess != null) {
-    numberOfProcess = values.numeroOfprocess;
+  if (values.numberOfProcess != null) {
+    numberOfProcess = values.numberOfProcess;
   }
 
   if (values.maxStates != null) {
@@ -117,9 +122,14 @@ async function readFile(path) {
   }
 }
 
-async function run() {
+async function run(puppeteerQW) {
   try {
-    const browser = await puppeteer.launch({ headless: false });
+    let browser;
+    if(puppeteerQW == null){
+      browser = await puppeteer.launch({ headless: headlessOption, args: ['--ignore-certificate-errors', '--no-sandbox'] });
+    } else {
+      browser = puppeteerQW;
+    }
     var [page] = await browser.pages();
     if (userAgent != null) {
       await page.setUserAgent(userAgent);
@@ -133,12 +143,10 @@ async function run() {
     if (DIRECTIONS != null && DIRECTIONS.length != 0) {
       await checkForDirections(browser);
     };
+
     await getEventAndInteraction(page, events);
     await utilsM.addState(session, page, STATES_SPA_COMPARE, IDS_IGNORE_SPA_COMPARE, STATES_SPA_EVALUATION, "original", xpathM, loggerM);
     await populateQueue(browser);
-
-    // console.log(events);
-    // console.log(events.length);
 
     if (events.length == 0 && directionEvents.length == 0) {
       end(browser);
@@ -152,7 +160,7 @@ async function run() {
 }
 
 async function checkForDirections(browser) {
-  let directionQueue = asyncQ.queue(directionsM.executeDirection, '1');
+  let directionQueue = asyncQ.queue(directionsM.executeDirection, '1'); // METER O NUMERO DE PROCESSO AQUI TB
   DIRECTIONS.forEach(async direction => {
     let page = await buildPage(browser);
     if (userAgent != null) {
@@ -181,7 +189,7 @@ async function checkForDirections(browser) {
 async function getEventAndInteraction(page, events) {
   const session = await page.target().createCDPSession();
   await getEvents(session, events);
-  await getInteraction(page, events);
+  // await getInteraction(page, events);
 }
 
 async function getEvents(session, events) {
@@ -230,18 +238,22 @@ async function populateQueue(browser) {
     queue.drain(async () => {
       end(browser);
     });
-    directionEvents.forEach(async direction => {
-      queue.push({
-        browser: browser,
-        actionbefore: direction
+    if (directionEvents.length != 0) {
+      directionEvents.forEach(async direction => {
+        queue.push({
+          browser: browser,
+          actionbefore: direction
+        });
       });
-    });
-    events.forEach(async event => {
-      queue.push({
-        browser: browser,
-        actionbefore: [event]
+    }
+    if (events.length != 0) {
+      events.forEach(async event => {
+        queue.push({
+          browser: browser,
+          actionbefore: [event]
+        });
       });
-    });
+    }
   } else {
     end(browser);
   }
@@ -259,16 +271,20 @@ async function addQueue(events, browser, actionbefore) {
 }
 
 async function explore(data) {
+  if(data.browser == null){
+    return;
+  }
   let page = await buildPage(data.browser);
   const session = await page.target().createCDPSession();
-  await actionsM.performBeforeAction(page, data.actionbefore, session, xpathM, loggerM, waitTime);
+  await actionsM.performeAction(page, data.actionbefore, session, xpathM, loggerM, waitTime);
   if (!page.isClosed()) {
     await xpathM.createSelectorOnPage(session);
     const events = [];
     await getEventAndInteraction(page, events);
     if (await utilsM.addState(session, page, STATES_SPA_COMPARE, IDS_IGNORE_SPA_COMPARE, STATES_SPA_EVALUATION, data.actionbefore, xpathM, loggerM)) {
       if (maxStates != null && STATES_SPA_COMPARE.size >= maxStates) {
-        end(data.browser);
+        await queue.remove(explore);
+        await data.browser.close();
         return;
       }
       await addQueue(events, data.browser, data.actionbefore)
@@ -281,15 +297,14 @@ async function end(browser) {
   if (browser != null) {
     await browser.close();
   }
-  console.log(await queue.length());
   if (queue != null && await queue.length() > 0) {
     await queue.kill();
   }
 }
 
-async function crawl(qualstateOptions, isFile) {
+async function crawl(qualstateOptions, puppeteer) {
   let start = Date.now();
-  if (!(await validateOptions(qualstateOptions, isFile))) {
+  if (!(await validateOptions(qualstateOptions))) {
     return;
   }
   await run();
@@ -298,8 +313,6 @@ async function crawl(qualstateOptions, isFile) {
     states: "STATES_SPA_EVALUATION Size: " + STATES_SPA_EVALUATION.size,
     duration: `Execution time: ${end - start} ms`
   });
-  console.log("STATES_SPA_EVALUATION Size: " + STATES_SPA_EVALUATION.size);
-  console.log(`Execution time: ${new Date(end - start).toISOString().slice(11, 19)} ms`);
   return STATES_SPA_EVALUATION;
 }
 

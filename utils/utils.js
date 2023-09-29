@@ -77,16 +77,15 @@ async function addState(session, page, STATES_SPA_COMPARE, IDS_IGNORE_SPA_COMPAR
   let bodyEvaluation = await getContent(page);
   let bodyEvaluationHash = bodyToHash(bodyEvaluation);
 
-  await xpathM.createSelectorOnPage(session);
-  await removeNodes(IDS_IGNORE_SPA_COMPARE, session, page);
-  await xpathM.removeSelectorOnPage(session);
+  if(IDS_IGNORE_SPA_COMPARE != null && IDS_IGNORE_SPA_COMPARE.length != 0 ){
+    await xpathM.createSelectorOnPage(session);
+    await removeNodes(IDS_IGNORE_SPA_COMPARE, session, page);
+    await xpathM.removeSelectorOnPage(session);
+  }
 
   let bodyCompare = await getContent(page);
   let bodyCompareHash = bodyToHash(bodyCompare);
 
-  // console.log(" ---------------------------------------------------- ");
-  // console.log(" STATES_SPA_COMPARE: " + STATES_SPA_COMPARE.size);
-  // console.log(" STATES_SPA_EVALUATION: " + STATES_SPA_EVALUATION.size);
   if (STATES_SPA_COMPARE.has(bodyCompareHash)) {
     return false;
   } else {
@@ -136,8 +135,11 @@ async function removeNodes(idsToIgnore, session, page, selector = '*') {
 function checkElements(idsIgnore, attributes) {
   if (attributes != null) {
     for (const id of idsIgnore) {
-      if (attributes.filter((attribute) => attribute.match(id)).length != 0) {
-        return true;
+      for(const attribute of attributes){
+        let result = attribute.match(id);
+        if ((result != null && result.length > 0)) {
+          return true;
+        }
       }
     }
   }

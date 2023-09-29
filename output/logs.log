@@ -1,99 +1,29 @@
-info: 19:25:32
+info: 20:46:07
 {
   "msg": "Input válido"
 }
-info: 19:25:34
+info: 20:46:10
 {
   "msg": "Ação realizada",
   "action": "original",
-  "bodyHash": "ea1466714aae1ddb6af938f3b86a75f821667b091c5185946114414c7386b85c"
+  "bodyHash": "14f80c386bb5b016d1dd03242dbfe9f552927e01feb7c1a6505653f277b3b98d"
 }
-error: 19:25:41
-{
-  "msg": "Não foi possivel realizar a ação auto",
-  "action": {
-    "user": "auto",
-    "nodeType": "A",
-    "id": "a.e-link.-space",
-    "className": "HTMLAnchorElement",
-    "eventType": "click",
-    "selector": "html > body:nth-child(2) > div:nth-child(1) > div:nth-child(1) > div:nth-child(1) > header:nth-child(2) > div:nth-child(2) > span:nth-child(1) > span:nth-child(2) > a:nth-child(1)"
-  },
-  "actions": [
-    {
-      "user": "auto",
-      "nodeType": "A",
-      "id": "a.e-link.-space",
-      "className": "HTMLAnchorElement",
-      "eventType": "click",
-      "selector": "html > body:nth-child(2) > div:nth-child(1) > div:nth-child(1) > div:nth-child(1) > header:nth-child(2) > div:nth-child(2) > span:nth-child(1) > span:nth-child(2) > a:nth-child(1)"
-    }
-  ]
-}
-error: 19:25:44
-{
-  "msg": "Não foi possivel realizar a ação auto",
-  "action": {
-    "user": "auto",
-    "nodeType": "A",
-    "id": "a.e-link.-membership",
-    "className": "HTMLAnchorElement",
-    "eventType": "click",
-    "selector": "html > body:nth-child(2) > div:nth-child(1) > div:nth-child(1) > div:nth-child(1) > footer:nth-child(3) > div:nth-child(2) > div:nth-child(1) > span:nth-child(1) > span:nth-child(1) > a:nth-child(1)"
-  },
-  "actions": [
-    {
-      "user": "auto",
-      "nodeType": "A",
-      "id": "a.e-link.-membership",
-      "className": "HTMLAnchorElement",
-      "eventType": "click",
-      "selector": "html > body:nth-child(2) > div:nth-child(1) > div:nth-child(1) > div:nth-child(1) > footer:nth-child(3) > div:nth-child(2) > div:nth-child(1) > span:nth-child(1) > span:nth-child(1) > a:nth-child(1)"
-    }
-  ]
-}
-info: 19:25:48
+info: 20:46:13
 {
   "msg": "Ação realizada",
   "action": [
     {
       "user": "auto",
-      "nodeType": "A",
-      "id": "a.m-navigation__link.-space",
-      "className": "HTMLAnchorElement",
+      "id": "input#btnSubmit",
+      "className": "HTMLInputElement",
       "eventType": "click",
-      "selector": "html > body:nth-child(2) > div:nth-child(1) > div:nth-child(1) > div:nth-child(1) > nav:nth-child(4) > a:nth-child(1)"
+      "selector": "html > body:nth-child(2) > div:nth-child(1) > form:nth-child(1) > input:nth-child(10)"
     }
   ],
-  "bodyHash": "4cecd40aa48b47b458b2e5c3a8791368543e4f30bc0799e73adee08d5e1537a4"
+  "bodyHash": "1704e38477f0c68cc992b23b6390e77576a2e66121c80496deab4594752a1446"
 }
-info: 19:25:52
+info: 20:46:13
 {
-  "msg": "Ação realizada",
-  "action": [
-    {
-      "user": "auto",
-      "nodeType": "A",
-      "id": "a.m-navigation__link.-members",
-      "className": "HTMLAnchorElement",
-      "eventType": "click",
-      "selector": "html > body:nth-child(2) > div:nth-child(1) > div:nth-child(1) > div:nth-child(1) > nav:nth-child(4) > a:nth-child(2)"
-    }
-  ],
-  "bodyHash": "874627c4889e82132af8b28a2e2560390e2a0e1d31c882b08612985a93184f86"
-}
-info: 19:25:56
-{
-  "msg": "Ação realizada",
-  "action": [
-    {
-      "user": "auto",
-      "nodeType": "A",
-      "id": "a.m-navigation__link.-membership",
-      "className": "HTMLAnchorElement",
-      "eventType": "click",
-      "selector": "html > body:nth-child(2) > div:nth-child(1) > div:nth-child(1) > div:nth-child(1) > nav:nth-child(4) > a:nth-child(3)"
-    }
-  ],
-  "bodyHash": "d5d9db1ad6436820f44efc0a2fa4093252e6366ae968b5631487ec7e6988fd85"
+  "states": "STATES_SPA_EVALUATION Size: 2",
+  "duration": "Execution time: 6002 ms"
 }

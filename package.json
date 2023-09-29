@@ -17,7 +17,7 @@
     "winston": "^3.9.0"
   },
   "name": "qualstate",
-  "description": "- Versão Atual:\r     - Apenas realiza click.\r     - Do input apenas se utiliza a propriedade \"qualstate.ignore.spa_evaluation\".",
+  "description": "QualState is an automatic SPA(Single Page Application) crawler",
   "version": "1.0.0",
   "main": "qualState.js",
   "scripts": {

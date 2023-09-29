@@ -12,7 +12,7 @@ describe('inputs', function () {
     let qualStateOptions = {
       "url": "http://localhost:3000/",
       "ignore": {
-        "ids_events": ["btnSubmit", "btnReq", "hoverTest", "btnId", "aHref", "idTd1", "idTd2"]
+        "ids_events": ["btnSubmit", "btnReq", "hoverTest", "aHref", "idTd1", "idTd2"]
       },
       "interaction": {
         "inputs": [

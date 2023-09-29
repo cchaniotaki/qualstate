@@ -1,6 +1,6 @@
 const utilsM = require("../utils/utils.js");
 
-async function getEvents(session, idsToIgnore, events, selector = '*') { // rever nomes das variaveis e json como resultado
+async function getEvents(session, idsToIgnore, events, selector = '*') {
     const objectGroup = 'dc24d2b3-f5ec-4273-a5c8-1459b5c78ca0';
 
     const { result: { objectId } } = await session.send('Runtime.evaluate', {
@@ -88,7 +88,6 @@ async function filterEvents(elements, events) {
                 case 'A':
                     events.push({
                         user: "auto",
-                        nodeType: "A",
                         id: el.value.description,
                         className: el.value.className,
                         eventType: "click",

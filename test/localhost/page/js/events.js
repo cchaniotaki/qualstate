@@ -65,7 +65,7 @@ window.onload = function () {
             //     };
             //     xhr.send();
 
-            const response = await fetch("http://localhost:4001/url");
+            const response = await fetch("http://localhost:3001/url");
             const data = await response.json();
             const pReq = document.getElementById("pReq");
 

@@ -10,13 +10,12 @@ describe('ignoreEvents', function () {
     localServer.runServerSPA();
 
     let qualStateOptions = {
+      "maxStates": 3,
       "url": "http://localhost:3000/",
-      "log": {
-        "file": false,
-        "console": false
-      },
+      "waitTime": 2000,
+      "numberOfProcess": 8,
       "ignore": {
-        "ids_events": ["z-index", "btnId", "btnReq", "hoverTest", "aHref", "idTd1", "idTd2"]
+        "ids_events": ["/contact/", "_blank", "target"]
       }
     };
 

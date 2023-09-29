@@ -1,6 +1,6 @@
 const utilsM = require("../utils/utils.js");
 
-async function performeAction(page, event, selector, waitTime) {
+async function performeEvent(page, event, selector, waitTime) {
     let valid = true;
     switch (event) {
         case 'click':
@@ -30,11 +30,11 @@ async function performeAction(page, event, selector, waitTime) {
     }
 }
 
-async function performBeforeAction(page, actions, session, xpath, logger, waitTime) {
+async function performeAction(page, actions, session, xpath, logger, waitTime) {
     for await (const action of actions) {
         await xpath.createSelectorOnPage(session);
         if (action.user == "auto") {
-            if (!await performeAction(page, action.eventType, action.selector, waitTime)) {
+            if (!await performeEvent(page, action.eventType, action.selector, waitTime)) {
                 logger.logDetails("error", {
                     msg: "Não foi possivel realizar a ação auto",
                     action: action,
@@ -44,12 +44,14 @@ async function performBeforeAction(page, actions, session, xpath, logger, waitTi
             };
         }
         else if (action.user == "manual") {
+            if (action.wait != null) {
+                await new Promise(resolve => setTimeout(resolve, action.wait));
+            }
             if (action.beforeAction != null) {
                 let arrKeyBeforeActions = Object.keys(action.beforeAction);
                 for await (const idElement of arrKeyBeforeActions) {
                     await xpath.createSelectorOnPage(session);
                     if (await utilsM.pageEvaluateId(page, idElement)) {
-                        ;
                         switch (await utilsM.pageNodeName(page, idElement)) {
                             case 'text' || 'date' || 'datetime-local' || 'email' || 'month' || 'number' || 'password' || 'range' || 'tel' || 'time' || 'url' || 'week':
                                 await utilsM.pageInsertValue(page, idElement, action.beforeAction[idElement]);
@@ -71,7 +73,7 @@ async function performBeforeAction(page, actions, session, xpath, logger, waitTi
                 if (await utilsM.pageEvaluateId(page, action.endAction["id"])) {
                     let isSelector = await utilsM.isSelector(page, action.endAction["id"])
                     let selector = isSelector ? action.endAction["id"] : "#" + action.endAction["id"];
-                    if (!await performeAction(page, action.endAction["eventType"], selector)) {
+                    if (!await performeEvent(page, action.endAction["eventType"], selector)) {
                         logger.logDetails("error", {
                             msg: "Não foi possivel realizar a ação manual",
                             action: action,
@@ -88,4 +90,4 @@ async function performBeforeAction(page, actions, session, xpath, logger, waitTi
     }
 }
 
-module.exports = { performBeforeAction };
+module.exports = { performeAction };

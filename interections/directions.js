@@ -21,7 +21,7 @@ async function executeDirection(data) {
       actionToExecute.endAction = action.action
     }
 
-    await data.actionsM.performBeforeAction(data.page, [actionToExecute], session, data.xpathM, data.logger);
+    await data.actionsM.performeAction(data.page, [actionToExecute], session, data.xpathM, data.logger);
     beforeAction.push(actionToExecute);
 
     if (data.direction.info.save == true) {

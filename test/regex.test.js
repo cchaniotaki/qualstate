@@ -3,8 +3,8 @@ const localServer = require('./localhost/server.js');
 
 const assert = require('assert');
 
-describe('inputs', function () {
-  it('Test Input', async function () {
+describe('regex', function () {
+  it('Test Regex', async function () {
     this.timeout(0);
 
     localServer.runServerSPA();
@@ -15,7 +15,7 @@ describe('inputs', function () {
         "ids_compare": [
           "pIdTd"
         ],
-        "ids_events": ["btnSubmit", "btnId", "aHref", "idTd1", "idTd2"]
+        "ids_events": ["btnSubmit", "btnReq", "btnId", "hoverTest", "aHref"]
       }
     };
 
@@ -23,6 +23,6 @@ describe('inputs', function () {
 
     localServer.stopServerSPA();
 
-    assert.equal(value.size, 4);
+    assert.equal(value.size, 1);
   });
 });

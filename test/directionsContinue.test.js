@@ -21,11 +21,14 @@ describe('directionsContinue', function () {
               {
                 "values": {
                   "fname": "filipe",
-                  "mname": "#######################################################################"
+                  "mname": "martins"
                 },
                 "action": {
                   "id": "btnSubmit",
                   "eventType": "click"
+                },
+                "info": {
+                  "wait": 2000
                 }
               },
               {

@@ -1,26 +1,155 @@
-# qualstate
+# QualWeb core
 
-- Versão Atual:
-    - Apenas realiza click.
-    - Do input apenas se utiliza a propriedade "qualstate.ignore.spa_evaluation". 
+QualState is an automatic SPA(Single Page Application) crawler
 
+## How to run
 
+```javascript
+const qualstate = require("qualstate");
 
------------------------
-Testes mais completos.
-Logs para os inputs de html, parece não exisitr nenhuma opção sem ser realizar a ação e fazer uma avaliação a comparar o valor na page com o valor a colocar.
-Verificação na direção para evitar criar uma page sem que seja necessário.
-Mais flags no ficheiro de input:
-    - url
-    - número de processos
+let qualStateOptions = {
+    "url": "http://localhost:4000/",
+    "headless": true,
+    "maxStates": 2
+};
 
+(async () => {
+    await qualState.crawl(qualStateOptions);
+})();
+```
 
+## Options
 
+The available options fot the **crawl()** function are:
 
+```jsonc
+{
+  "url": "http://localhost:3000/", // url to evaluate
+  "headless": false, // value of headless to use on puppeteer. Default value = false 
+  "waitTime": 2000, // time to wait between actions
+  "maxStates": 2, // number of maximum states to be found
+  "numberOfProcess": 3, // Number of concurrent processes. Default value = 1
+  "log": {
+    "file": true, // Logs errors to a file. Default value = false
+    "console": false // Logs errors to the console. Default value = false
+  },
+  "viewport": {
+    "mobile": false, // default value = false
+    "landscape": true, // default value = viewPort.width > viewPort.height
+    "resolution": {
+      "width": 1920, // default value for desktop = 1366, default value for mobile = 1080
+      "height": 1080 // default value for desktop = 768, default value for mobile = 1920
+    }
+  },
+  "ignore": {
+    "ids_compare": ["pErrorMessage"], // array of IDs or any identifying attribute of element that should be ignore when comparing states.
+    "ids_events": ["btnReq", "hoverTest", "btnId", "aHref", "idTd1", "idTd2"] // array of IDs of element that have events and should be ignore.
+  },
+  "interaction": {
+    "inputs": [ // array of inputs, that will be executed on the page if the inputs exist
+      {
+        "value": { // one or more key:value, where key is the ID of input and value the input value
+          "onChangeInput": "inputOnChange"
+        },
+        "info": {
+          "wait": 2000 // time to wait after executing the inputs
+        }
+      }
+    ],
+    "forms": [ // array of forms, that will be executed on the page if the forms exist
+      {
+        "input": [ // array inputs to be place on the form
+          { // one or more key:value, where key is the ID of input and value the input value
+            "fname": "filipe"
+          }
+        ],
+        "action": { // action that submits the form
+          "id": "btnSubmit", // ID of the element
+          "event": "click" // type of event to be executed
+        },
+        "info": {
+          "formId": "idForm" // ID of the form
+        },
+      }
+    ],
+    "directions": [ // array of directions, that will be executed at the beginning of the crawl process
+      {
+        "actions": [ // array of actions to be executed for each directions
+          {
+            "values": { // one or more key:value, where key is the ID of input and value the input value
+              "fname": "filipe"
+            },
+            "action": { // action that should be trigger
+              "id": "btnSubmit", // ID of the element
+              "eventType": "click" // type of event to be executed
+            }
+          },
+          {
+            "values": {
+              "newFName": "filipe"
+            },
+            "action": {
+              "id": "btnSubmitNewForm",
+              "eventType": "click"
+            }
+          }
+        ],
+        "info": {
+          "crawl": "stop", // flag to know if the crawl process shoulf continue after the directions process. Value = "stop" || "continue"
+          "save": true // save the states during the directions process
+        }
+      }
+    ]
+  }
+}
+```
 
-// tempo e ver a média
-// 1:38:13 15 estados - 1
-// 1:34:52 15 estados - 2
-// 1:22:70 15 estados - 4
-// 1:18:42 15 estados - 5
-// 1:09:60 15 estados - 6
+## Report details
+
+At the end of the process there is a report to the user. The report its divide in two different set of information. In case console was true, there's only one report.
+
+Console:
+```jsonc
+info: 20:46:13
+{
+  "msg": "Ação realizada",
+  "action": [
+    {
+      "user": "auto",
+      "id": "input#btnSubmit",
+      "className": "HTMLInputElement",
+      "eventType": "click",
+      "selector": "html > body:nth-child(2) > div:nth-child(1) > form:nth-child(1) > input:nth-child(10)"
+    }
+  ],
+  "bodyHash": "1704e38477f0c68cc992b23b6390e77576a2e66121c80496deab4594752a1446"
+}
+```
+
+In case the file was true there's two reports
+File *logs.log*:
+```jsonc
+info: 20:46:13
+{
+  "msg": "Ação realizada",
+  "action": [
+    {
+      "user": "auto",
+      "id": "input#btnSubmit",
+      "className": "HTMLInputElement",
+      "eventType": "click",
+      "selector": "html > body:nth-child(2) > div:nth-child(1) > form:nth-child(1) > input:nth-child(10)"
+    }
+  ],
+  "bodyHash": "1704e38477f0c68cc992b23b6390e77576a2e66121c80496deab4594752a1446"
+}
+
+File *states.log*
+```jsonc
+info: 20:46:13
+{
+  "bodyHash": "1704e38477f0c68cc992b23b6390e77576a2e66121c80496deab4594752a1446",
+  "body": "<!DOCTYPE html><html>......n</body></html>"
+}
+
+```

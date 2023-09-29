@@ -1,7 +1,7 @@
 {
   "qualstate": {
     "url": "http://localhost:5173/",
-    "numeroOfprocess": 1,
+    "numberOfProcess": 1,
     "viewport": {
       "mobile": "boolean",
       "landscape": "boolean",
