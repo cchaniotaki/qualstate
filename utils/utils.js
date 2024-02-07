@@ -86,10 +86,10 @@ async function addState(session, page, STATES_SPA_COMPARE, IDS_IGNORE_SPA_COMPAR
   let bodyCompare = await getContent(page);
   let bodyCompareHash = bodyToHash(bodyCompare);
 
+
   if (STATES_SPA_COMPARE.has(bodyCompareHash)) {
     return false;
   } else {
-
     STATES_SPA_EVALUATION.add({ _body: bodyEvaluation, _selector: selector });
     STATES_SPA_COMPARE.add(bodyCompareHash);
 

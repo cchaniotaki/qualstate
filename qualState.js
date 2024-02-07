@@ -42,6 +42,8 @@ let userAgent;
 let events = [];
 let directionEvents = [];
 let viewport = {};
+let cookies = {};
+let login = [];
 
 async function validateOptions(options) {
   let values;
@@ -90,6 +92,14 @@ async function validateOptions(options) {
     maxStates = values.maxStates;
   }
 
+  if (values.cookies != null) {
+    cookies = values.cookies;
+  }
+
+  if (values.login != null) {
+    login = values.login;
+  }
+
   if (values.ignore != null) {
     if (values.ignore.ids_compare != null) {
       IDS_IGNORE_SPA_COMPARE = new Set(values.ignore.ids_compare);
@@ -125,11 +135,25 @@ async function readFile(path) {
 async function run(puppeteerQW) {
   try {
     let browser;
-    if(puppeteerQW == null){
-      browser = await puppeteer.launch({ headless: headlessOption, args: ['--ignore-certificate-errors', '--no-sandbox'] });
+    if (puppeteerQW == null) {
+      // browser = await puppeteer.launch({ headless: true, args: ['--ignore-certificate-errors', '--no-sandbox'] });      
+      browser = await puppeteer.launch({
+        defaultViewport: null,
+        args: [
+          '--no-sandbox',
+          '--ignore-certificate-errors',
+          '--disable-blink-features=AutomationControlled'
+        ]
+      });
+
     } else {
       browser = puppeteerQW;
     }
+
+    const context = browser.defaultBrowserContext();
+    // context.clearPermissionOverrides();
+    await context.overridePermissions(url, ['notifications']);
+
     var [page] = await browser.pages();
     if (userAgent != null) {
       await page.setUserAgent(userAgent);
@@ -139,10 +163,34 @@ async function run(puppeteerQW) {
     }
     await page.goto(url, { waitUntil: 'networkidle2' });
 
+    //cookies & login
+    if (cookies != null) {
+      await cookiesHandler(cookies, page);
+    }
+
+    if (login != null && login.length > 0) {        
+      await loginHandler(login, page);
+    }
+
+    page.setRequestInterception(true);
+    page.on('dialog', async dialog => {
+      await dialog.dismiss();
+    });
+    page.on('popup', async popup => {
+      await popup.close();
+    });
+    page.on('request', (request) => {
+      if (request.isNavigationRequest() == true && request.resourceType() != "xhr") {
+        request.abort();
+      } else {
+        request.continue();
+      }
+    });
+
     const session = await page.target().createCDPSession();
     if (DIRECTIONS != null && DIRECTIONS.length != 0) {
       await checkForDirections(browser);
-    };
+    }
 
     await getEventAndInteraction(page, events);
     await utilsM.addState(session, page, STATES_SPA_COMPARE, IDS_IGNORE_SPA_COMPARE, STATES_SPA_EVALUATION, "original", xpathM, loggerM);
@@ -159,8 +207,43 @@ async function run(puppeteerQW) {
   }
 }
 
+async function cookiesHandler(cookies, page) {
+  if (cookies.waitBefore != null) {
+    await new Promise(resolve => setTimeout(resolve, cookies.waitBefore));
+  }
+  if (cookies.btn != null) {
+    await actionsM.performEvent(page, 'click', cookies.btn, 0)
+  }
+  if (cookies.waitAfter != null) {
+    await new Promise(resolve => setTimeout(resolve, cookies.waitAfter));
+  }
+}
+
+async function loginHandler(login, page) {
+  for await (const value of login) {
+    if (value.info != null) {
+      if (value.info.wait != null) {
+        await new Promise(resolve => setTimeout(resolve, value.info.wait));
+      }
+    }
+    if (value.credentials != null) {
+      let keys = Object.keys(value.credentials);
+      if (keys.length != 0) {
+        for await (const key of keys) {
+          await utilsM.pageInsertValue(page, key, value.credentials[key]);
+        }
+      }
+    }
+    if (value.action != null) {
+      if (value.action.id != null && value.action.event != null) {
+        await actionsM.performEvent(page, value.action.event, value.action.id, 2000);
+      }
+    }
+  }
+}
+
 async function checkForDirections(browser) {
-  let directionQueue = asyncQ.queue(directionsM.executeDirection, '1'); // METER O NUMERO DE PROCESSO AQUI TB
+  let directionQueue = asyncQ.queue(directionsM.executeDirection, '1'); // METER O NUMERO DE PROCESSO AQUI
   DIRECTIONS.forEach(async direction => {
     let page = await buildPage(browser);
     if (userAgent != null) {
@@ -189,7 +272,7 @@ async function checkForDirections(browser) {
 async function getEventAndInteraction(page, events) {
   const session = await page.target().createCDPSession();
   await getEvents(session, events);
-  // await getInteraction(page, events);
+  await getInteraction(page, events);
 }
 
 async function getEvents(session, events) {
@@ -215,6 +298,7 @@ async function buildPage(browser) {
     await page.setViewport(viewport);
   }
   await page.goto(url, { waitUntil: 'networkidle2' });
+  
   page.setRequestInterception(true);
   page.on('dialog', async dialog => {
     await dialog.dismiss();
@@ -222,6 +306,7 @@ async function buildPage(browser) {
   page.on('popup', async popup => {
     await popup.close();
   });
+
   page.on('request', (request) => {
     if (request.isNavigationRequest() == true && request.resourceType() != "xhr") {
       page.close();
@@ -229,6 +314,7 @@ async function buildPage(browser) {
       request.continue();
     }
   });
+
   return page;
 }
 
@@ -271,22 +357,26 @@ async function addQueue(events, browser, actionbefore) {
 }
 
 async function explore(data) {
-  if(data.browser == null){
+  if (data.browser == null) {
     return;
   }
   let page = await buildPage(data.browser);
   const session = await page.target().createCDPSession();
-  await actionsM.performeAction(page, data.actionbefore, session, xpathM, loggerM, waitTime);
+
+  await actionsM.performAction(page, data.actionbefore, session, xpathM, loggerM, waitTime);
   if (!page.isClosed()) {
     await xpathM.createSelectorOnPage(session);
     const events = [];
     await getEventAndInteraction(page, events);
+    
     if (await utilsM.addState(session, page, STATES_SPA_COMPARE, IDS_IGNORE_SPA_COMPARE, STATES_SPA_EVALUATION, data.actionbefore, xpathM, loggerM)) {
       if (maxStates != null && STATES_SPA_COMPARE.size >= maxStates) {
         await queue.remove(explore);
         await data.browser.close();
+
         return;
       }
+
       await addQueue(events, data.browser, data.actionbefore)
     }
     page.close();
@@ -313,6 +403,14 @@ async function crawl(qualstateOptions, puppeteer) {
     states: "STATES_SPA_EVALUATION Size: " + STATES_SPA_EVALUATION.size,
     duration: `Execution time: ${end - start} ms`
   });
+
+  console.log("-                                                                     -");
+  console.log("Processo Terminado.");
+  console.log("-                                                                     -");
+  console.log("Estados Encontrados - " + STATES_SPA_EVALUATION.size);
+  console.log("-                                                                     -");
+  console.log("Tempo de Execução: - " + (end - start) + "ms");
+
   return STATES_SPA_EVALUATION;
 }
 

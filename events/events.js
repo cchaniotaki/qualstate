@@ -7,6 +7,7 @@ async function getEvents(session, idsToIgnore, events, selector = '*') {
         expression: `document.querySelectorAll("${selector}")`,
         objectGroup
     });
+    
     const { result } = await session.send('Runtime.getProperties', { objectId });
     const descriptors = result
         .filter(x => x.value !== undefined)

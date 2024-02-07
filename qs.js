@@ -2,18 +2,14 @@ const qualState = require("./qualState.js");
 // let path = "./user_input/INPUT.json";
 
 let qualStateLocalhost = {
-    "url": "http://localhost:4000/",
-    "headless": true,
-    "maxStates": 2,
+    "url": "https://plant22.co/",
+    "headless": false,
+    "maxStates": 3,
     "log": {
-        "file": true,
-        "console": true
+        "file": false,
+        "console": false
       }
 };
-
-(async () => {
-    await qualState.crawl(qualStateLocalhost);
-})();
 
 // (async () => {
 //     const args = Array.from(process.argv).slice(2);
@@ -27,3 +23,8 @@ let qualStateLocalhost = {
 //         console.error(err);
 //     }
 // })();
+
+
+(async () => {
+    await qualState.crawl(qualStateLocalhost);
+})();

@@ -21,6 +21,63 @@ const schema = {
 		numberOfProcess: {
 			"type": "number"
 		},
+		cookies: {
+			type: "object",
+			properties: {
+				waitBefore: {
+					"type": "number"
+				},
+				btn: {
+					"type": "string"
+				},
+				waitAfter: {
+					"type": "number"
+				}
+			},
+			"minProperties": 1,
+			"maxProperties": 3,
+			additionalProperties: false
+		},
+
+		login: {
+			"type": "array",
+			"items": {
+				"type": "object",
+				properties: {
+					action: {
+						type: "object",
+						properties: {
+							id: {
+								"type": "string"
+							},
+							event: {
+								"type": "string"
+							}
+						},
+						"required": ["id", "event"],
+						additionalProperties: false
+					},
+					credentials: {
+						type: "object"
+					},
+					info: {
+						"type": "object",
+						properties: {
+							wait: {
+								"type": "number"
+							}
+						},
+						"required": ["wait"],
+						additionalProperties: false
+					}
+				}
+			},
+			"minItems": 1
+		},
+
+		
+
+
 		viewport: {
 			type: "object",
 			properties: {
@@ -232,7 +289,7 @@ const schema = {
 		}
 	},
 	"minProperties": 1,
-	"maxProperties": 5,
+	"maxProperties": 11,
 	additionalProperties: false,
 	"required": ["url"],
 }

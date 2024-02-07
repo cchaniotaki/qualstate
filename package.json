@@ -14,6 +14,9 @@
     "jest": "^29.5.0",
     "mocha": "^10.2.0",
     "puppeteer": "^19.11.1",
+    "puppeteer-extra": "^3.3.6",
+    "puppeteer-extra-plugin-adblocker": "^2.13.6",
+    "puppeteer-extra-plugin-stealth": "^2.11.2",
     "winston": "^3.9.0"
   },
   "name": "qualstate",
@@ -31,7 +34,8 @@
     "test:httpRequest": "mocha test/httpRequest.test.js",
     "test:maxStates": "mocha test/maxStates.test.js",
     "test:viewport": "mocha test/viewport.test.js",
-    "test:regex": "mocha test/regex.test.js"
+    "test:regex": "mocha test/regex.test.js",
+    "test:teste": "mocha test/teste.test.js"
   },
   "repository": {
     "type": "git",

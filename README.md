@@ -33,6 +33,35 @@ The available options fot the **crawl()** function are:
     "file": true, // Logs errors to a file. Default value = false
     "console": false // Logs errors to the console. Default value = false
   },
+
+  "cookies": {
+        "waitBefore": 9000,  // time to wait before clicking in the btn
+        "btn": "body > div:nth-child(27) > div > div > div > div.nq.nr.ns.nt.ge.gi.ah.nu.hx.nv > div > button", // XPaht or ID of btn
+        "waitAfter": 5000  // time to wait after clicking in the btn
+  },
+  "login": [
+        {
+          "credentials": {// Credential
+            "#identifierId": "", // key:value, where key is the ID of input and value the input - in this case could be email
+          }
+        },
+        {
+          "credentials": {// Credential
+            "#password > div > div > div > input": "", // key:value, where key is the ID of input and value the input - in this case could be password
+          }
+        },
+        {
+          "action": {
+            "id": "#login_button", // Id of button to execute login action in the page
+            "event": "click"// type of event to be executed
+          }
+        },
+        {
+          "info": { 
+            "wait": 6000  // time to wait for the login to be executed
+          }
+        }
+      ],
   "viewport": {
     "mobile": false, // default value = false
     "landscape": true, // default value = viewPort.width > viewPort.height
@@ -77,7 +106,7 @@ The available options fot the **crawl()** function are:
         "actions": [ // array of actions to be executed for each directions
           {
             "values": { // one or more key:value, where key is the ID of input and value the input value
-              "fname": "filipe"
+              "fname": "Name"
             },
             "action": { // action that should be trigger
               "id": "btnSubmit", // ID of the element
@@ -86,7 +115,7 @@ The available options fot the **crawl()** function are:
           },
           {
             "values": {
-              "newFName": "filipe"
+              "newFName": "Name"
             },
             "action": {
               "id": "btnSubmitNewForm",

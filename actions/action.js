@@ -1,6 +1,6 @@
 const utilsM = require("../utils/utils.js");
 
-async function performeEvent(page, event, selector, waitTime) {
+async function performEvent(page, event, selector, waitTime) {
     let valid = true;
     switch (event) {
         case 'click':
@@ -30,11 +30,11 @@ async function performeEvent(page, event, selector, waitTime) {
     }
 }
 
-async function performeAction(page, actions, session, xpath, logger, waitTime) {
+async function performAction(page, actions, session, xpath, logger, waitTime) {
     for await (const action of actions) {
         await xpath.createSelectorOnPage(session);
         if (action.user == "auto") {
-            if (!await performeEvent(page, action.eventType, action.selector, waitTime)) {
+            if (!await performEvent(page, action.eventType, action.selector, waitTime)) {
                 logger.logDetails("error", {
                     msg: "Não foi possivel realizar a ação auto",
                     action: action,
@@ -73,7 +73,7 @@ async function performeAction(page, actions, session, xpath, logger, waitTime) {
                 if (await utilsM.pageEvaluateId(page, action.endAction["id"])) {
                     let isSelector = await utilsM.isSelector(page, action.endAction["id"])
                     let selector = isSelector ? action.endAction["id"] : "#" + action.endAction["id"];
-                    if (!await performeEvent(page, action.endAction["eventType"], selector)) {
+                    if (!await performEvent(page, action.endAction["eventType"], selector)) {
                         logger.logDetails("error", {
                             msg: "Não foi possivel realizar a ação manual",
                             action: action,
@@ -90,4 +90,4 @@ async function performeAction(page, actions, session, xpath, logger, waitTime) {
     }
 }
 
-module.exports = { performeAction };
+module.exports = { performAction, performEvent };
