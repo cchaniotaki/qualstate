@@ -36,7 +36,7 @@ async function performAction(page, actions, session, xpath, logger, waitTime) {
         if (action.user == "auto") {
             if (!await performEvent(page, action.eventType, action.selector, waitTime)) {
                 logger.logDetails("error", {
-                    msg: "Não foi possivel realizar a ação auto",
+                    msg: "Unable to perform auto action",
                     action: action,
                     actions: actions
                 });
@@ -75,7 +75,7 @@ async function performAction(page, actions, session, xpath, logger, waitTime) {
                     let selector = isSelector ? action.endAction["id"] : "#" + action.endAction["id"];
                     if (!await performEvent(page, action.endAction["eventType"], selector)) {
                         logger.logDetails("error", {
-                            msg: "Não foi possivel realizar a ação manual",
+                            msg: "Unable to perform manual action",
                             action: action,
                             actions: actions
                         });

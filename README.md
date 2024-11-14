@@ -182,3 +182,16 @@ info: 20:46:13
   "body": "<!DOCTYPE html><html>......n</body></html>"
 }
 ```
+
+
+gia na mporeso na trekso to firefox eprepe na kano auto:
+
+PUPPETEER_PRODUCT=firefox npm install
+npx puppeteer browsers install firefox
+I have created a .env file for the var variables that i need.
+In order to run all the browsers together i have the start.sh
+
+
+prospathisa na to trekso alla to ergaleio xrisimopoiei to tool tou  chrome ara den mporo na to trekso gia kati allo ektos apo chromioun.
+
+opote as doume pso trexeiem proxy

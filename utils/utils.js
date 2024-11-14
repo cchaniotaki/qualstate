@@ -94,7 +94,7 @@ async function addState(session, page, STATES_SPA_COMPARE, IDS_IGNORE_SPA_COMPAR
     STATES_SPA_COMPARE.add(bodyCompareHash);
 
     loggerM.logDetails("info", {
-      msg: "Ação realizada",
+      msg: "Action taken",
       action: selector,
       bodyHash: bodyEvaluationHash
     }, {
