@@ -7,7 +7,7 @@ sed -i '' 's/^BROWSER=.*/BROWSER=chrome/' .env
 node qs.js
 
 ## Step 5: Update .env file to browser=edge
-sed -i '' 's/^BROWSER=.*/BROWSER=edge/' .env
+#sed -i '' 's/^BROWSER=.*/BROWSER=edge/' .env
 #
 ## Step 6: Run qs.js again with edge configuration
-node qs.js
+#node qs.js
