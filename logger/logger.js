@@ -6,9 +6,9 @@ let outputPath;
 const browser = process.env.BROWSER;
 console.log("LOGGER: " + browser);
 if (browser === "chrome") {
-    outputPath = process.env.OUTPUT_CHROME + "/" + process.env.URL_CATEGORY;
+    outputPath = process.env.OUTPUT_CHROME + "/" + process.env.URL_NAME_ID;
 } else {
-    outputPath = process.env.OUTPUT_EDGE + "/" + process.env.URL_CATEGORY;
+    outputPath = process.env.OUTPUT_EDGE + "/" + process.env.URL_NAME_ID;
 }
 
 
