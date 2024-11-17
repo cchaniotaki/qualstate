@@ -44,7 +44,7 @@ let queue;
 let userAgent;
 let events = [];
 let directionEvents = [];
-let viewport = {};
+// let viewport = {};
 let cookies = {};
 let proxy = {};
 let login = [];
@@ -76,15 +76,15 @@ async function validateOptions(options) {
         proxy = values.proxy;
     }
 
-    if (values.viewport != null) {
-        viewport.mobile = values.viewport.mobile != null ? values.viewport.mobile : false;
-        viewport.landscape = values.viewport.landscape != null ? values.viewport.landscape : true;
-        if (values.viewport.userAgent != null) {
-            userAgent = values.viewport.userAgent;
-        }
-        viewport.width = values.viewport.resolution?.width != null ? values.viewport.resolution.width : 0;
-        viewport.height = values.viewport.resolution?.height != null ? values.viewport.resolution.height : 0;
-    }
+    // if (values.viewport != null) {
+    //     viewport.mobile = values.viewport.mobile != null ? values.viewport.mobile : false;
+    //     viewport.landscape = values.viewport.landscape != null ? values.viewport.landscape : true;
+    //     if (values.viewport.userAgent != null) {
+    //         userAgent = values.viewport.userAgent;
+    //     }
+    //     viewport.width = values.viewport.resolution?.width != null ? values.viewport.resolution.width : 0;
+    //     viewport.height = values.viewport.resolution?.height != null ? values.viewport.resolution.height : 0;
+    // }
 
     if (values.log != null) {
         if (values.log.file != null) {
@@ -157,7 +157,10 @@ async function run(puppeteerQW) {
             // browser = await puppeteer.launch({ headless: true, args: ['--ignore-certificate-errors', '--no-sandbox'] });
             let options = {
                 headless: headlessOption,
-                defaultViewport: null,
+                defaultViewport: {
+                    width: 1280,    // Set the viewport width
+                    height: 720,
+                },
                 args: ['--no-sandbox', '--ignore-certificate-errors', '--disable-blink-features=AutomationControlled'],
             }
             if (executablePath) {
@@ -180,9 +183,9 @@ async function run(puppeteerQW) {
         if (userAgent != null) {
             await page.setUserAgent(userAgent);
         }
-        if (Object.keys(viewport).length > 0) {
-            await page.setViewport(viewport);
-        }
+        // if (Object.keys(viewport).length > 0) {
+        //     await page.setViewport(viewport);
+        // }
 
         await page.goto(url, {waitUntil: 'networkidle2'});
         await delay(30000); // waits for 3 seconds
@@ -272,9 +275,9 @@ async function checkForDirections(browser) {
         if (userAgent != null) {
             await page.setUserAgent(userAgent);
         }
-        if (Object.keys(viewport).length > 0) {
-            await page.setViewport(viewport);
-        }
+        // if (Object.keys(viewport).length > 0) {
+        //     await page.setViewport(viewport);
+        // }
         directionQueue.push({
             page: page,
             direction: direction,
@@ -317,9 +320,9 @@ async function buildPage(browser) {
     if (userAgent != null) {
         await page.setUserAgent(userAgent);
     }
-    if (Object.keys(viewport).length > 0) {
-        await page.setViewport(viewport);
-    }
+    // if (Object.keys(viewport).length > 0) {
+    //     await page.setViewport(viewport);
+    // }
     await page.goto(url, {waitUntil: 'networkidle2'});
 
     page.setRequestInterception(true);

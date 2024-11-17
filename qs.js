@@ -7,7 +7,7 @@ require('dotenv').config();
 // Access environment variables
 const url = process.env.URL;
 const headless = process.env.HEADLESS.toLowerCase() === 'true';
-const proxy =  process.env.PROXY.toLowerCase() === 'true';
+const proxy = process.env.PROXY.toLowerCase() === 'true';
 const browser = process.env.BROWSER;
 let browserPath = '';
 if (browser === "chrome") {
