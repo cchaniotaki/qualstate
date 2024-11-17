@@ -159,7 +159,7 @@ async function run(puppeteerQW) {
                 headless: headlessOption,
                 defaultViewport: {
                     width: 1280,    // Set the viewport width
-                    height: 720,
+                    height: 1024,
                 },
                 args: ['--no-sandbox', '--ignore-certificate-errors', '--disable-blink-features=AutomationControlled'],
             }
