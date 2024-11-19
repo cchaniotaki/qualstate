@@ -47,10 +47,11 @@ let qualStateLocalhost = {
 (async () => {
 
     if (proxy) {
-        const mitmproxyPath = process.env.MITMPROXY_PATH + "/mitmdump";
+        const mitmproxyPath = process.env.MITMPROXY_PATH + "mitmdump";
         const proxyPort = process.env.PROXY_PORT;
-        const cachePath = process.env.CACHE_PATH;
-
+        const cachePath = process.env.CACHE_PATH_WITH_NAME;
+        console.log("cachePath");
+        console.log(cachePath);
         // Example usage
         const mitmproxyManager = new MitmproxyManager(mitmproxyPath, proxyPort, cachePath);
         await mitmproxyManager.start();

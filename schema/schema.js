@@ -94,8 +94,6 @@ const schema = {
             },
             "minItems": 1
         },
-
-
         viewport: {
             type: "object",
             properties: {
