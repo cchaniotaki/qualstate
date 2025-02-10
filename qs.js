@@ -5,15 +5,15 @@ const {MitmproxyManager} = require("./mitmproxy");
 require('dotenv').config();
 
 // Access environment variables
-const url = process.env.URL;
-const headless = process.env.HEADLESS.toLowerCase() === 'true';
-const proxy = process.env.PROXY.toLowerCase() === 'true';
-const browser = process.env.BROWSER;
+const url = process.env.QUALSTATE_URL;
+const headless = process.env.QUALSTATE_HEADLESS.toLowerCase() === 'true';
+const proxy = process.env.QUALSTATE_PROXY.toLowerCase() === 'true';
+const browser = process.env.QUALSTATE_BROWSER;
 let browserPath = '';
 if (browser === "chrome") {
-    browserPath = process.env.CHROME_PATH;
+    browserPath = process.env.QUALSTATE_CHROME_PATH;
 } else { // edge
-    browserPath = process.env.EDGE_PATH;
+    browserPath = process.env.QUALSTATE_EDGE_PATH;
 }
 
 console.log("Headless: " + headless)
@@ -30,33 +30,12 @@ let qualStateLocalhost = {
 };
 
 
-// (async () => {
-//     const args = Array.from(process.argv).slice(2);
-//     try {
-//         if (args.length === 0) {
-//             await qualState.crawl(qualStateLocalhost);
-//         } else {
-//             await qualState.crawl(args[0]);
-//         }
-//     } catch (err) {
-//         console.error(err);
-//     }
-// })();
-
-
 (async () => {
 
     if (proxy) {
-        // const proxyPort = process.env.PROXY_PORT;
-        // const cachePath = process.env.CACHE_PATH_WITH_NAME;
-        // console.log("cachePath");
-        // console.log(cachePath);
-        // // Example usage
-        // const mitmproxyManager = new MitmproxyManager(mitmproxyPath, proxyPort, cachePath);
-        // await mitmproxyManager.start();
         qualStateLocalhost.proxy = {
-            host: process.env.PROXY_HOST,
-            port: Number(process.env.PROXY_PORT)
+            host: process.env.QUALSTATE_PROXY_HOST,
+            port: Number(process.env.QUALSTATE_PROXY_PORT)
         };
         await qualState.crawl(qualStateLocalhost);
         console.log("finished");
