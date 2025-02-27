@@ -151,17 +151,32 @@ const delay = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
 
 
 async function run(puppeteerQW) {
+    const crypto = require('crypto');
+    let visitedPages = new Set();
+
+    async function isDuplicatePage(page) {
+        let content = await page.content(); // Get page HTML
+        let hash = crypto.createHash('sha256').update(content).digest('hex');
+
+        if (visitedPages.has(hash)) {
+            console.warn(`[WARNING] Skipping duplicate page: ${page.url()}`);
+            return true;
+        }
+
+        visitedPages.add(hash);
+        return false;
+    }
     try {
         let browser;
         if (puppeteerQW == null) {
-            // browser = await puppeteer.launch({ headless: true, args: ['--ignore-certificate-errors', '--no-sandbox'] });
             let options = {
                 headless: headlessOption,
                 defaultViewport: {
                     width: 1280,    // Set the viewport width
                     height: 1024,
                 },
-                args: ['--no-sandbox', '--ignore-certificate-errors', '--disable-blink-features=AutomationControlled'],
+                ignoreHTTPSErrors: true,
+                args: ['--no-sandbox', '--ignore-certificate-errors', '--disable-blink-features=AutomationControlled', '--disable-http2'],
             }
             if (executablePath) {
                 options.executablePath = executablePath;
@@ -180,15 +195,14 @@ async function run(puppeteerQW) {
         await context.overridePermissions(url, ['notifications']);
 
         var [page] = await browser.pages();
-        if (userAgent != null) {
-            await page.setUserAgent(userAgent);
-        }
+        // if (userAgent != null) {
+        //     await page.setUserAgent(userAgent);
+        // }
         // if (Object.keys(viewport).length > 0) {
         //     await page.setViewport(viewport);
         // }
-
         await page.goto(url, {waitUntil: 'networkidle2'});
-        await delay(30000); // waits for 3 seconds
+        // await delay(3000); // waits for 3 seconds
         //cookies & login
         // if (cookies != null) {
         //     await cookiesHandler(cookies, page);
@@ -233,48 +247,16 @@ async function run(puppeteerQW) {
     }
 }
 
-async function cookiesHandler(cookies, page) {
-    if (cookies.waitBefore != null) {
-        await new Promise(resolve => setTimeout(resolve, cookies.waitBefore));
-    }
-    if (cookies.btn != null) {
-        await actionsM.performEvent(page, 'click', cookies.btn, 0)
-    }
-    if (cookies.waitAfter != null) {
-        await new Promise(resolve => setTimeout(resolve, cookies.waitAfter));
-    }
-}
-
-// async function loginHandler(login, page) {
-//     for await (const value of login) {
-//         if (value.info != null) {
-//             if (value.info.wait != null) {
-//                 await new Promise(resolve => setTimeout(resolve, value.info.wait));
-//             }
-//         }
-//         if (value.credentials != null) {
-//             let keys = Object.keys(value.credentials);
-//             if (keys.length != 0) {
-//                 for await (const key of keys) {
-//                     await utilsM.pageInsertValue(page, key, value.credentials[key]);
-//                 }
-//             }
-//         }
-//         if (value.action != null) {
-//             if (value.action.id != null && value.action.event != null) {
-//                 await actionsM.performEvent(page, value.action.event, value.action.id, 2000);
-//             }
-//         }
-//     }
-// }
-
 async function checkForDirections(browser) {
     let directionQueue = asyncQ.queue(directionsM.executeDirection, '1'); // METER O NUMERO DE PROCESSO AQUI
     DIRECTIONS.forEach(async direction => {
+        // console.log("-------dire");
+        // console.log(direction);
+        // $exit
         let page = await buildPage(browser);
-        if (userAgent != null) {
-            await page.setUserAgent(userAgent);
-        }
+        // if (userAgent != null) {
+        //     await page.setUserAgent(userAgent);
+        // }
         // if (Object.keys(viewport).length > 0) {
         //     await page.setViewport(viewport);
         // }
@@ -421,6 +403,8 @@ async function crawl(qualstateOptions, puppeteer) {
         return;
     }
     await run();
+
+
     let end = Date.now();
     loggerM.logDetails("info", {
         states: "STATES_SPA_EVALUATION Size: " + STATES_SPA_EVALUATION.size,

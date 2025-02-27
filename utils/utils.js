@@ -115,7 +115,7 @@ async function addState(session, page, STATES_SPA_COMPARE, IDS_IGNORE_SPA_COMPAR
         });
 
         // cchaniotaki: I am keeping the html to use it on my empirical study
-        console.log(bodyEvaluation)
+        // console.log(bodyEvaluation)
 
         // Replace 'content' with the data you want to save
         const filePath = outputPath + '/' + bodyEvaluationHash + '.html'; // Specify the file name or path

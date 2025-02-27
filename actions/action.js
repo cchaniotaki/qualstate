@@ -33,7 +33,9 @@ async function performEvent(page, event, selector, waitTime) {
 async function performAction(page, actions, session, xpath, logger, waitTime) {
     for await (const action of actions) {
         await xpath.createSelectorOnPage(session);
+        // console.log(action)
         if (action.user == "auto") {
+
             if (!await performEvent(page, action.eventType, action.selector, waitTime)) {
                 logger.logDetails("error", {
                     msg: "Unable to perform auto action",

@@ -4,7 +4,7 @@ require('dotenv').config();
 // Access environment variables
 let outputPath;
 const browser = process.env.QUALSTATE_BROWSER;
-console.log("LOGGER: " + browser);
+// console.log("LOGGER: " + browser);
 if (browser === "chrome") {
     outputPath = process.env.QUALSTATE_OUTPUT_CHROME + "/" + process.env.QUALSTATE_URL_NAME_ID;
 } else {

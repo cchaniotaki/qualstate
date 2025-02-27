@@ -55,62 +55,87 @@ function checkOtherTags(element) {
     }
 }
 
+function areURLsEquivalent(url1, url2) {
+    try {
+        // Normalize URLs by ensuring they have a protocol
+        const parsedUrl1 = new URL(url1.startsWith('http') ? url1 : `https://${url1}`);
+        const parsedUrl2 = new URL(url2.startsWith('http') ? url2 : `https://${url2}`);
+
+        // Compare hostname, pathname
+
+        return (
+            parsedUrl1.hostname === parsedUrl2.hostname &&
+            parsedUrl1.pathname === parsedUrl2.pathname
+        );
+    } catch (error) {
+        console.error("Invalid URL(s)", error);
+        return false;
+    }
+}
+
 async function filterEvents(elements, events) {
     elements.forEach(el => {
         let selector;
+        let selector_url = null;
         el.node.attributes.forEach((nd, i) => {
             if (nd == "_selector") {
                 selector = el.node.attributes[i + 1];
             }
+            if (nd == "href") {
+                selector_url = el.node.attributes[i + 1];
+            }
         });
-        if (!checkOtherTags(el)) {
-            el.listeners.forEach(e => {
-                if (e.type == "click") {
-                    events.push({
-                        user: "auto",
-                        id: el.value.description,
-                        className: el.value.className,
-                        eventType: e.type,
-                        selector: selector
-                    });
+
+        if (selector_url == null || areURLsEquivalent(selector_url, process.env.QUALSTATE_URL)){
+            if (!checkOtherTags(el)) {
+                el.listeners.forEach(e => {
+                    if (e.type == "click") {
+                        events.push({
+                            user: "auto",
+                            id: el.value.description,
+                            className: el.value.className,
+                            eventType: e.type,
+                            selector: selector
+                        });
+                    }
+                    if (e.type == "mouseenter") {
+                        events.push({
+                            user: "auto",
+                            id: el.value.description,
+                            className: el.value.className,
+                            eventType: "houver",
+                            selector: selector
+                        });
+                    }
+                });
+            } else {
+                switch (el.node.nodeName) {
+                    case 'A':
+                        events.push({
+                            user: "auto",
+                            id: el.value.description,
+                            className: el.value.className,
+                            eventType: "click",
+                            selector: selector
+                        });
+                        break;
+                    case 'INPUT':
+                        el.node.attributes.forEach((nd, i) => {
+                            if (nd == "type") {
+                                if (el.node.attributes[i + 1] == "submit") {
+                                    events.push({
+                                        user: "auto",
+                                        id: el.value.description,
+                                        className: el.value.className,
+                                        eventType: "click",
+                                        selector: selector
+                                    });
+                                };
+                            }
+                        });
+                    default:
+                        break;
                 }
-                if (e.type == "mouseenter") {
-                    events.push({
-                        user: "auto",
-                        id: el.value.description,
-                        className: el.value.className,
-                        eventType: "houver",
-                        selector: selector
-                    });
-                }
-            });
-        } else {
-            switch (el.node.nodeName) {
-                case 'A':
-                    events.push({
-                        user: "auto",
-                        id: el.value.description,
-                        className: el.value.className,
-                        eventType: "click",
-                        selector: selector
-                    });
-                    break;
-                case 'INPUT':
-                    el.node.attributes.forEach((nd, i) => {
-                        if (nd == "type") {
-                            if (el.node.attributes[i + 1] == "submit") {
-                                events.push({
-                                    user: "auto",
-                                    id: el.value.description,
-                                    className: el.value.className,
-                                    eventType: "click",
-                                    selector: selector
-                                });
-                            };
-                        }
-                    });
-                default:
-                    break;
             }
         }
     });
